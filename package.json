@@ -1,0 +1,13 @@
+{
+  "name": "tonex-one-web",
+  "version": "0.2.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check src/app.js && node --check src/serial.js && node --check src/usb.js && node --check src/protocol.js",
+    "build": "node scripts/build-pages.js"
+  },
+  "license": "MIT"
+}

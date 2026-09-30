@@ -1,0 +1,985 @@
+// Parameter table adapted from Builty/TonexOneController. Copyright (C) 2025 Greg Smith. Apache-2.0.
+// See THIRD_PARTY_LICENSES.txt and licenses/Apache-2.0.txt.
+export const parameters = [
+  {
+    "index": 0,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "NG POST",
+    "type": "switch",
+    "id": "NOISE_GATE_POST"
+  },
+  {
+    "index": 1,
+    "default": 1.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "NG POWER",
+    "type": "switch",
+    "id": "NOISE_GATE_ENABLE"
+  },
+  {
+    "index": 2,
+    "default": -64.0,
+    "min": -100.0,
+    "max": 0.0,
+    "short": "NG THRESH",
+    "type": "range",
+    "id": "NOISE_GATE_THRESHOLD"
+  },
+  {
+    "index": 3,
+    "default": 20.0,
+    "min": 5.0,
+    "max": 500.0,
+    "short": "NG REL",
+    "type": "range",
+    "id": "NOISE_GATE_RELEASE"
+  },
+  {
+    "index": 4,
+    "default": -60.0,
+    "min": -100.0,
+    "max": -20.0,
+    "short": "NG DEPTH",
+    "type": "range",
+    "id": "NOISE_GATE_DEPTH"
+  },
+  {
+    "index": 5,
+    "default": 1.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "COMP POST",
+    "type": "switch",
+    "id": "COMP_POST"
+  },
+  {
+    "index": 6,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "COMP POWER",
+    "type": "switch",
+    "id": "COMP_ENABLE"
+  },
+  {
+    "index": 7,
+    "default": -14.0,
+    "min": -40.0,
+    "max": 0.0,
+    "short": "COMP THRESH",
+    "type": "range",
+    "id": "COMP_THRESHOLD"
+  },
+  {
+    "index": 8,
+    "default": -12.0,
+    "min": -30.0,
+    "max": 10.0,
+    "short": "COMP GAIN",
+    "type": "range",
+    "id": "COMP_MAKE_UP"
+  },
+  {
+    "index": 9,
+    "default": 14.0,
+    "min": 1.0,
+    "max": 51.0,
+    "short": "COMP ATTACK",
+    "type": "range",
+    "id": "COMP_ATTACK"
+  },
+  {
+    "index": 10,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "EQ POST",
+    "type": "switch",
+    "id": "EQ_POST"
+  },
+  {
+    "index": 11,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "EQ BASS",
+    "type": "range",
+    "id": "EQ_BASS"
+  },
+  {
+    "index": 12,
+    "default": 300.0,
+    "min": 75.0,
+    "max": 600.0,
+    "short": "EQ BFREQ",
+    "type": "range",
+    "id": "EQ_BASS_FREQ"
+  },
+  {
+    "index": 13,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "EQ MID",
+    "type": "range",
+    "id": "EQ_MID"
+  },
+  {
+    "index": 14,
+    "default": 0.7,
+    "min": 0.2,
+    "max": 3.0,
+    "short": "EQ MIDQ",
+    "type": "range",
+    "id": "EQ_MIDQ"
+  },
+  {
+    "index": 15,
+    "default": 750.0,
+    "min": 150.0,
+    "max": 5000.0,
+    "short": "EQ MFREQ",
+    "type": "range",
+    "id": "EQ_MID_FREQ"
+  },
+  {
+    "index": 16,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "EQ TREBLE",
+    "type": "range",
+    "id": "EQ_TREBLE"
+  },
+  {
+    "index": 17,
+    "default": 1900.0,
+    "min": 1000.0,
+    "max": 4000.0,
+    "short": "EQ TFREQ",
+    "type": "range",
+    "id": "EQ_TREBLE_FREQ"
+  },
+  {
+    "index": 18,
+    "default": 1.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MDL AMP",
+    "type": "switch",
+    "id": "MODEL_AMP_ENABLE"
+  },
+  {
+    "index": 19,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MDL SW1",
+    "type": "switch",
+    "id": "MODEL_SW1"
+  },
+  {
+    "index": 20,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MDL GAIN",
+    "type": "range",
+    "id": "MODEL_GAIN"
+  },
+  {
+    "index": 21,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MDL VOL",
+    "type": "range",
+    "id": "MODEL_VOLUME"
+  },
+  {
+    "index": 22,
+    "default": 100.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MDL MIX",
+    "type": "range",
+    "id": "MODEX_MIX"
+  },
+  {
+    "index": 23,
+    "default": 1.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MDL CABU",
+    "type": "switch",
+    "id": "MODEL_CABINET_UNKNOWN"
+  },
+  {
+    "index": 24,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 2.0,
+    "short": "MDL CAB",
+    "type": "select",
+    "id": "CABINET_TYPE"
+  },
+  {
+    "index": 25,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "VIR_CMDL",
+    "type": "select",
+    "id": "VIR_CABINET_MODEL"
+  },
+  {
+    "index": 26,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "VIR_RESO",
+    "type": "range",
+    "id": "VIR_RESO"
+  },
+  {
+    "index": 27,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 2.0,
+    "short": "VIR M1",
+    "type": "select",
+    "id": "VIR_MIC_1"
+  },
+  {
+    "index": 28,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "VIR M1X",
+    "type": "range",
+    "id": "VIR_MIC_1_X"
+  },
+  {
+    "index": 29,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "VIR M1Z",
+    "type": "range",
+    "id": "VIR_MIC_1_Z"
+  },
+  {
+    "index": 30,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 2.0,
+    "short": "VIR M2",
+    "type": "select",
+    "id": "VIR_MIC_2"
+  },
+  {
+    "index": 31,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 2.0,
+    "short": "VIR M2X",
+    "type": "range",
+    "id": "VIR_MIC_2_X"
+  },
+  {
+    "index": 32,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "VIR M2Z",
+    "type": "range",
+    "id": "VIR_MIC_2_Z"
+  },
+  {
+    "index": 33,
+    "default": 0.0,
+    "min": -100.0,
+    "max": 100.0,
+    "short": "VIR BLEND",
+    "type": "range",
+    "id": "VIR_BLEND"
+  },
+  {
+    "index": 34,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MDL PRE",
+    "type": "range",
+    "id": "MODEL_PRESENCE"
+  },
+  {
+    "index": 35,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MDL DEP",
+    "type": "range",
+    "id": "MODEL_DEPTH"
+  },
+  {
+    "index": 36,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "RVB POS",
+    "type": "switch",
+    "id": "REVERB_POSITION"
+  },
+  {
+    "index": 37,
+    "default": 1.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "RVB POWER",
+    "type": "switch",
+    "id": "REVERB_ENABLE"
+  },
+  {
+    "index": 38,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 5.0,
+    "short": "RVB MODEL",
+    "type": "select",
+    "id": "REVERB_MODEL"
+  },
+  {
+    "index": 39,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "RVB S1 T",
+    "type": "range",
+    "id": "REVERB_SPRING1_TIME"
+  },
+  {
+    "index": 40,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 500.0,
+    "short": "RVB S1 P",
+    "type": "range",
+    "id": "REVERB_SPRING1_PREDELAY"
+  },
+  {
+    "index": 41,
+    "default": 0.0,
+    "min": -10.0,
+    "max": 10.0,
+    "short": "RVB S1 C",
+    "type": "range",
+    "id": "REVERB_SPRING1_COLOR"
+  },
+  {
+    "index": 42,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "RVB S1 M",
+    "type": "range",
+    "id": "REVERB_SPRING1_MIX"
+  },
+  {
+    "index": 43,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "RVB S2 T",
+    "type": "range",
+    "id": "REVERB_SPRING2_TIME"
+  },
+  {
+    "index": 44,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 500.0,
+    "short": "RVB S2 P",
+    "type": "range",
+    "id": "REVERB_SPRING2_PREDELAY"
+  },
+  {
+    "index": 45,
+    "default": 0.0,
+    "min": -10.0,
+    "max": 10.0,
+    "short": "RVB S2 C",
+    "type": "range",
+    "id": "REVERB_SPRING2_COLOR"
+  },
+  {
+    "index": 46,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "RVB S2 M",
+    "type": "range",
+    "id": "REVERB_SPRING2_MIX"
+  },
+  {
+    "index": 47,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "RVB S3 T",
+    "type": "range",
+    "id": "REVERB_SPRING3_TIME"
+  },
+  {
+    "index": 48,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 500.0,
+    "short": "RVB S3 P",
+    "type": "range",
+    "id": "REVERB_SPRING3_PREDELAY"
+  },
+  {
+    "index": 49,
+    "default": 0.0,
+    "min": -10.0,
+    "max": 10.0,
+    "short": "RVB S3 C",
+    "type": "range",
+    "id": "REVERB_SPRING3_COLOR"
+  },
+  {
+    "index": 50,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "RVB S3 M",
+    "type": "range",
+    "id": "REVERB_SPRING3_MIX"
+  },
+  {
+    "index": 51,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "RVB S4 T",
+    "type": "range",
+    "id": "REVERB_SPRING4_TIME"
+  },
+  {
+    "index": 52,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 500.0,
+    "short": "RVB S4 P",
+    "type": "range",
+    "id": "REVERB_SPRING4_PREDELAY"
+  },
+  {
+    "index": 53,
+    "default": 0.0,
+    "min": -10.0,
+    "max": 10.0,
+    "short": "RVB S4 C",
+    "type": "range",
+    "id": "REVERB_SPRING4_COLOR"
+  },
+  {
+    "index": 54,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "RVB S4 M",
+    "type": "range",
+    "id": "REVERB_SPRING4_MIX"
+  },
+  {
+    "index": 55,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "RVB RM T",
+    "type": "range",
+    "id": "REVERB_ROOM_TIME"
+  },
+  {
+    "index": 56,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 500.0,
+    "short": "RVB RM P",
+    "type": "range",
+    "id": "REVERB_ROOM_PREDELAY"
+  },
+  {
+    "index": 57,
+    "default": 0.0,
+    "min": -10.0,
+    "max": 10.0,
+    "short": "RVB RM C",
+    "type": "range",
+    "id": "REVERB_ROOM_COLOR"
+  },
+  {
+    "index": 58,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "RVB RM M",
+    "type": "range",
+    "id": "REVERB_ROOM_MIX"
+  },
+  {
+    "index": 59,
+    "default": 5.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "RVB PL T",
+    "type": "range",
+    "id": "REVERB_PLATE_TIME"
+  },
+  {
+    "index": 60,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 500.0,
+    "short": "RVB PL P",
+    "type": "range",
+    "id": "REVERB_PLATE_PREDELAY"
+  },
+  {
+    "index": 61,
+    "default": 0.0,
+    "min": -10.0,
+    "max": 10.0,
+    "short": "RVB PL C",
+    "type": "range",
+    "id": "REVERB_PLATE_COLOR"
+  },
+  {
+    "index": 62,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "RVB PL M",
+    "type": "range",
+    "id": "REVERB_PLATE_MIX"
+  },
+  {
+    "index": 63,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD POST",
+    "type": "switch",
+    "id": "MODULATION_POST"
+  },
+  {
+    "index": 64,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD POWER",
+    "type": "switch",
+    "id": "MODULATION_ENABLE"
+  },
+  {
+    "index": 65,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 4.0,
+    "short": "MOD MODEL",
+    "type": "select",
+    "id": "MODULATION_MODEL"
+  },
+  {
+    "index": 66,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD CH S",
+    "type": "switch",
+    "id": "MODULATION_CHORUS_SYNC"
+  },
+  {
+    "index": 67,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "MOD CH T",
+    "type": "select",
+    "id": "MODULATION_CHORUS_TS"
+  },
+  {
+    "index": 68,
+    "default": 0.5,
+    "min": 0.1,
+    "max": 10.0,
+    "short": "MOD CH R",
+    "type": "range",
+    "id": "MODULATION_CHORUS_RATE"
+  },
+  {
+    "index": 69,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MOD CH D",
+    "type": "range",
+    "id": "MODULATION_CHORUS_DEPTH"
+  },
+  {
+    "index": 70,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MOD CH L",
+    "type": "range",
+    "id": "MODULATION_CHORUS_LEVEL"
+  },
+  {
+    "index": 71,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD TR S",
+    "type": "switch",
+    "id": "MODULATION_TREMOLO_SYNC"
+  },
+  {
+    "index": 72,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "MOD TR T",
+    "type": "select",
+    "id": "MODULATION_TREMOLO_TS"
+  },
+  {
+    "index": 73,
+    "default": 0.5,
+    "min": 0.1,
+    "max": 10.0,
+    "short": "MOD TR R",
+    "type": "range",
+    "id": "MODULATION_TREMOLO_RATE"
+  },
+  {
+    "index": 74,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MOD TR P",
+    "type": "range",
+    "id": "MODULATION_TREMOLO_SHAPE"
+  },
+  {
+    "index": 75,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MOD TR D",
+    "type": "range",
+    "id": "MODULATION_TREMOLO_SPREAD"
+  },
+  {
+    "index": 76,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MOD TR L",
+    "type": "range",
+    "id": "MODULATION_TREMOLO_LEVEL"
+  },
+  {
+    "index": 77,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD PH S",
+    "type": "switch",
+    "id": "PHASER_SYNC"
+  },
+  {
+    "index": 78,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "MOD PH T",
+    "type": "select",
+    "id": "PHASER_TS"
+  },
+  {
+    "index": 79,
+    "default": 0.5,
+    "min": 0.1,
+    "max": 10.0,
+    "short": "MOD PH R",
+    "type": "range",
+    "id": "PHASER_RATE"
+  },
+  {
+    "index": 80,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MOD PH D",
+    "type": "range",
+    "id": "PHASER_DEPTH"
+  },
+  {
+    "index": 81,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MOD PH L",
+    "type": "range",
+    "id": "PHASER_LEVEL"
+  },
+  {
+    "index": 82,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD FL S",
+    "type": "switch",
+    "id": "FLANGER_SYNC"
+  },
+  {
+    "index": 83,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "MOD FL T",
+    "type": "select",
+    "id": "FLANGER_TS"
+  },
+  {
+    "index": 84,
+    "default": 0.5,
+    "min": 0.1,
+    "max": 10.0,
+    "short": "MOD FL R",
+    "type": "range",
+    "id": "FLANGER_RATE"
+  },
+  {
+    "index": 85,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MOD FL D",
+    "type": "range",
+    "id": "FLANGER_DEPTH"
+  },
+  {
+    "index": 86,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MOD FL F",
+    "type": "range",
+    "id": "FLANGER_FEEDEBACK"
+  },
+  {
+    "index": 87,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MOD FL L",
+    "type": "range",
+    "id": "FLANGER_LEVEL"
+  },
+  {
+    "index": 88,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "MOD RO S",
+    "type": "switch",
+    "id": "ROTARY_SYNC"
+  },
+  {
+    "index": 89,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "MOD RO T",
+    "type": "select",
+    "id": "ROTARY_TS"
+  },
+  {
+    "index": 90,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 400.0,
+    "short": "MOD RO S",
+    "type": "range",
+    "id": "ROTARY_SPEED"
+  },
+  {
+    "index": 91,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 300.0,
+    "short": "MOD RO R",
+    "type": "range",
+    "id": "ROTARY_RADIUS"
+  },
+  {
+    "index": 92,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "MOD RO D",
+    "type": "range",
+    "id": "ROTARY_SPREAD"
+  },
+  {
+    "index": 93,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 10.0,
+    "short": "MOD RO L",
+    "type": "range",
+    "id": "ROTARY_LEVEL"
+  },
+  {
+    "index": 94,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY POST",
+    "type": "switch",
+    "id": "DELAY_POST"
+  },
+  {
+    "index": 95,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY POWER",
+    "type": "switch",
+    "id": "DELAY_ENABLE"
+  },
+  {
+    "index": 96,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY MODEL",
+    "type": "select",
+    "id": "DELAY_MODEL"
+  },
+  {
+    "index": 97,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY DG S",
+    "type": "switch",
+    "id": "DELAY_DIGITAL_SYNC"
+  },
+  {
+    "index": 98,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "DLY DG T",
+    "type": "select",
+    "id": "DELAY_DIGITAL_TS"
+  },
+  {
+    "index": 99,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1000.0,
+    "short": "DLY DT M",
+    "type": "range",
+    "id": "DELAY_DIGITAL_TIME"
+  },
+  {
+    "index": 100,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "DLY DT F",
+    "type": "range",
+    "id": "DELAY_DIGITAL_FEEDBACK"
+  },
+  {
+    "index": 101,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY DT O",
+    "type": "switch",
+    "id": "DELAY_DIGITAL_MODE"
+  },
+  {
+    "index": 102,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "DLY DT X",
+    "type": "range",
+    "id": "DELAY_DIGITAL_MIX"
+  },
+  {
+    "index": 103,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY TA S",
+    "type": "switch",
+    "id": "DELAY_TAPE_SYNC"
+  },
+  {
+    "index": 104,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 17.0,
+    "short": "DLY TA T",
+    "type": "select",
+    "id": "DELAY_TAPE_TS"
+  },
+  {
+    "index": 105,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1000.0,
+    "short": "DLY TA M",
+    "type": "range",
+    "id": "DELAY_TAPE_TIME"
+  },
+  {
+    "index": 106,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "DLY TA F",
+    "type": "range",
+    "id": "DELAY_TAPE_FEEDBACK"
+  },
+  {
+    "index": 107,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 1.0,
+    "short": "DLY TA O",
+    "type": "switch",
+    "id": "DELAY_TAPE_MODE"
+  },
+  {
+    "index": 108,
+    "default": 0.0,
+    "min": 0.0,
+    "max": 100.0,
+    "short": "DLY TA X",
+    "type": "range",
+    "id": "DELAY_TAPE_MIX"
+  }
+];
