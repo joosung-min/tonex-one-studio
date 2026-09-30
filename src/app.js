@@ -1,3 +1,4 @@
+import {rhythmicDivisions} from './rhythmic-divisions.js';
 import {TapTempo} from './tap-tempo.js';
 import {APP_VERSION} from './version.js';
 import {CabinetModes} from './cabinet-mode.js';
@@ -99,8 +100,12 @@ function renderControls() {
     const p=parameters[index],v=params[index],title=label(p);
     const heading=g.id==='amp'&&index===11?`<div class="parameter-section-heading"><h3>EQ</h3><select data-param="10" aria-label="EQ position" ${disabled}><option value="0" ${params[10]!==1?'selected':''}>Pre amp</option><option value="1" ${params[10]===1?'selected':''}>Post amp</option></select></div>`:'';
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
-    if(p.type==='select')return `<label class="control"><span class="control-label">${title}</span><select data-param="${index}" ${disabled}>${(modelNames[index]||Array.from({length:p.max-p.min+1},(_,i)=>String(i+p.min))).map((n,i)=>`<option value="${i+p.min}" ${v===i+p.min?'selected':''}>${n}</option>`).join('')}</select></label>`;
-    return `${heading}<div class="control"><label class="control-label" for="range-${index}">${title}</label><div id="knob-${index}" class="knob" style="--angle:${Number.isFinite(v)?270*(v-p.min)/(p.max-p.min):0}deg" aria-hidden="true"></div><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
+    if(p.type==='select'){
+      const rhythmic=p.id.endsWith('_TS'),off=rhythmic&&params[index-1]!==1;
+      const options=rhythmic?rhythmicDivisions:(modelNames[index]||Array.from({length:p.max-p.min+1},(_,i)=>String(i+p.min))).map((label,i)=>({label,value:i+p.min}));
+      return `<label class="control ${rhythmic?'rhythmic-division':''}"><span class="control-label">${title}</span><select aria-label="${title}" data-param="${index}" ${enabled&&!off?'':'disabled'} ${rhythmic?'title="Enable Sync to use rhythmic division"':''}>${options.map(option=>`<option value="${option.value}" ${v===option.value?'selected':''}>${option.label}</option>`).join('')}</select></label>`;
+    }
+    return `${heading}<div class="control"><label class="control-label" for="range-${index}">${title}</label><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
   }).join('');
   if(effect==='tempo'){
     $('parameter-controls').innerHTML=`<div class="tempo-control"><label class="control-label" for="tempo-value">Global tempo</label><div class="tempo-input"><input id="tempo-value" aria-label="Global BPM" type="number" min="40" max="240" step="0.1" value="${Number.isFinite(tapPreview??pedalState?.tempo)?Number((tapPreview??pedalState.tempo).toFixed(1)):''}" placeholder="—" ${ready()?'':'disabled'}><span>BPM</span></div><button id="apply-tempo" class="secondary" ${ready()?'':'disabled'}>Apply tempo</button></div>`;
@@ -119,7 +124,6 @@ function renderControls() {
 }
 function updateControl(index) {
   const p=parameters[index],v=params[index];
-  if($(`knob-${index}`))$(`knob-${index}`).style.setProperty('--angle',`${270*(v-p.min)/(p.max-p.min)}deg`);
   if($(`range-${index}`))$(`range-${index}`).value=v;
   if($(`value-${index}`)&&document.activeElement!==$(`value-${index}`))$(`value-${index}`).value=format(v,p);
 }
@@ -273,7 +277,7 @@ usb.addEventListener('state',e=>{
 usb.addEventListener('parameter',e=>{
   if(busy||scanning||selected!==active())return;const {index,value}=e.detail;if(index>=109||!Number.isFinite(value)||pendingWrites.has(index))return;
   params[index]=value;if(index===24)cabinetModes.remember(selected,value);if(presets[selected])presets[selected].parameters=params.slice();updateControl(index);
-  if(groups.some(g=>g.model===index||g.enable===index||g.position===index)||index===24||index===10){renderChain();renderControls();}
+  if(groups.some(g=>g.model===index||g.enable===index||g.position===index)||index===24||index===10||parameters[index].id.endsWith('_SYNC')||parameters[index].id.endsWith('_TS')){renderChain();renderControls();}
 });
 usb.addEventListener('preset',e=>{
   if(busy||scanning||selected!==active()||pendingWrites.size)return;
