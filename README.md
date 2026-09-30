@@ -1,105 +1,33 @@
 # ToneX One Studio
 
-A desktop and mobile web editor for the original IK Multimedia ToneX One. Independent community project; not affiliated with IK Multimedia.
+A free browser editor for the IK Multimedia TONEX ONE pedal. Browse its stored presets, switch A/B/C slots, edit effects and parameters, and set or tap the global tempo.
 
-## Implemented
+**[Open ToneX One Studio](https://yvr-vibe.github.io/tonex-one-studio/)**
 
-- Compact editor with a fixed four-column effect grid, double-click/double-tap effect toggles, and saved light/dark theme. Slot buttons switch the pedal and display its assigned preset. A load badge loads a browsed preset into the active slot and selects the Amp editor; EQ controls live inside the Amp editor and remain editable with Amp bypassed; all effect cards except Global BPM support double-tap toggling; firmware sits beneath connection status and the last refresh time above the library.
-- Mac/desktop Chrome Web Serial transport over USB, with 115200/8N1, DTR/RTS, authorized-port reconnection and stream cleanup.
-- Android WebUSB CDC-ACM transport (VID `1963`, PID `00d1`), 115200/8N1, DTR/RTS setup.
-- Wake/full-state handshake (also connects when an already-awake pedal skips its wake acknowledgement), continuous HDLC receive loop, CRC-16/X-25, bounded frame sizes, timeout handling and a command queue.
-- Sequential reading of all 20 preset names and FX-era parameter summaries without loading those presets.
-- Preset assignment/loading into A/B (Dual) or C (Stomp), slot switching, and global bypass. State is refreshed before mutation and read back to confirm it.
-- Live amp, EQ, gate, compressor, cabinet, modulation, delay and reverb controls, including per-model parameters and pre/post placement. Controls require a complete supported 109-value parameter block.
-- Global BPM card with tap tempo (averages the latest five beat intervals) and numeric tempo controls (40–240 BPM), with coalesced writes and state readback confirmation. Selected preset borders and active slot buttons follow pedal preset colors; Gate, Comp, Mod, Delay and Reverb retain distinct colored borders when Off and matching fills when On in both themes.
-- Compact slider and numeric parameter controls without decorative knobs. Mod/Delay Division controls offer five musical shortcut buttons, disabled while Sync is off; other stored divisions are shown and preserved until a shortcut is selected.
-- Parameter updates coalesced at 80 ms, followed by preset readback; physical parameter and state notifications are observed.
-- Mobile preset/editor navigation, search, numeric inputs, explicit demo mode, settings JSON export.
-- PWA manifest and offline app-shell cache; no backend; production assets are bundled and minified with esbuild.
+## How to use
 
-## Run locally
+1. Connect your powered TONEX ONE to a desktop or Android device with a USB **data** cable. Android requires an OTG-capable connection.
+2. Close the official TONEX Editor and any other app using the pedal.
+3. Open the app, press **Connect pedal**, and select the pedal when your browser asks for USB access.
+4. Select a preset and press **Load preset**, or use **A/B/C** to switch to the preset assigned to that slot.
+5. Select an effect to edit it. Double-click or double-tap an effect card to turn it on or off. EQ stays in the Amp section; tap **Global BPM** repeatedly to set the tempo.
 
-Node.js 20 or newer:
+Choose **Explore demo** to try the interface without a pedal.
 
-```sh
-npm ci
-npm run dev
-```
+## Compatibility
 
-Open http://localhost:5173. Choose **Explore demo** to test the interface without a pedal. To run checks:
+Confirmed working in desktop Chrome and Android Chrome. Other browsers need compatible Web Serial (desktop) or WebUSB (Android) support. iPhone/iPad Safari is currently unsupported.
 
-```sh
-npm run check
-npm test
-```
+If the pedal does not appear or connect, check its power, the data cable, browser USB permissions, and that other editor apps are closed. Reconnect or refresh after the device sleeps.
 
-The Codex-provided Node executable can also run `server.js` and `--test tests/*.test.js` directly if Node is absent from your PATH.
+## Important information
 
-## Use on Desktop or Android web browser over USB
+- Edits are live. Use the official TONEX Editor to save changes permanently; do not assume they survive a preset switch or power cycle.
+- **Export settings** downloads preset names and parameter values. It is not a complete preset backup and cannot be restored by this app.
+- Pedal data stays between your browser and pedal. The public visitor counter uses CounterAPI and counts approximately once per browser tab session. CounterAPI receives network information, including your IP address; no pedal data is sent to it.
 
-1. Connect the powered ToneX One to your Mac with a USB **data** cable.
-2. Close TONEX Editor/Librarian and any other app using the pedal's serial port.
-3. Open **http://localhost:5173** in **Google Chrome** (or use an HTTPS-hosted copy). Plain localhost works for Web Serial; a LAN IP over HTTP does not.
-4. Click **Connect pedal** and choose the ToneX One USB serial port in Chrome's picker. Accept macOS accessory access if prompted.
-5. The app reads all 20 preset summaries. Use the same preset, slot and effect controls as on Android.
-6. Disconnect from the app before opening the official editor. Use **Connect pedal** after reconnecting the cable.
+## Contact and license
 
-Desktop selects Web Serial automatically. This uses macOS's USB serial driver rather than trying to claim its CDC interfaces with WebUSB. Android continues to select WebUSB, including Android versions that expose Web Serial for Bluetooth only. Safari is not supported by this connection path. If no port appears, check power/data cable and macOS accessory access; if opening fails, close other editors. Check power, the data cable and other pedal editors if the handshake fails.
+Questions: [vanvibesmedia@gmail.com](mailto:vanvibesmedia@gmail.com). [Support this project](https://www.paypal.com/ncp/payment/A6DN7PPRV5PR6).
 
-## Test on an Android phone
-
-1. Run `npm ci` and `npm run build`, then serve only `dist/` on an **HTTPS** static host. Keep its generated `/assets`, `/public`, and license files together.
-2. Alternatively run the local server with a trusted certificate for a hostname reachable from the phone:
-
-   ```sh
-   TLS_CERT=/path/to/certificate.pem TLS_KEY=/path/to/key.pem npm run dev
-   ```
-
-   Plain `http://<computer-LAN-IP>:5173` is useful for demo preview but does **not** enable WebUSB. Desktop localhost is a secure-context exception; your phone's LAN URL is not.
-3. Power the ToneX One and connect the phone with an OTG-capable **data** cable. Use a powered OTG hub if needed for the phone/pedal power arrangement.
-4. Open the HTTPS URL in Chrome on Android, tap **Connect pedal**, select ToneX One, and accept Android's USB permission prompt.
-5. The app handshakes, reads device state and then reads the 20 stored preset summaries. Select a preset and tap **Load preset**, or edit the currently active preset.
-6. If it fails, check the displayed error, close other pedal editors, and reconnect with a USB data cable.
-
-The website cannot open itself automatically when a cable is inserted. Initial access requires a click and permission. Use **Connect pedal** to reconnect after disconnecting.
-
-## Publish with GitHub Pages
-
-Use a separate repository for this app, not the parent MIXIE repository. The app works at a repository URL such as `https://YOUR-USERNAME.github.io/tonex-one-app/` and at a domain root.
-
-1. Upload this project to an empty public repository with a `main` branch. Keep `.github/workflows/pages.yml` included.
-2. In the repository's **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source.
-3. Run **Actions → Publish ToneX One Studio → Run workflow**, or push a commit to `main`.
-4. Once deployment succeeds, open the URL shown in the `github-pages` environment. Enable **Enforce HTTPS** in Pages settings if it is not already enforced.
-5. Connect the pedal in desktop Chrome or Android Chrome. The new website origin asks for its own device permission, even if localhost was already authorized.
-
-The workflow checks the code, runs the tests, and publishes only `dist/`. `npm run build` creates that folder with hashed, minified JavaScript/CSS and the required MIT/third-party notices. Individual source modules, source maps, build metadata, and package files are excluded. `npm run preview` serves the built app locally. The local server, tests, README and diagnostics are excluded from the hosted website. No server process or credentials are required in the website. GitHub Pages HTTPS hosts the interface; USB data stays local to the browser and pedal.
-
-## Verification status and limitations
-
-Automated protocol checks use a real state fixture and command/notification vectors published by TUSB, plus streaming, corruption and malformed-layout checks. Browser interactions have been checked in demo mode. A read-only native serial check on the connected Mac pedal successfully decoded its state and all 20 preset summaries, each containing 109 parameter values. It also confirmed that repeated wake requests and the legacy short hello may receive no reply. A regression test covers the captured state and silent-wake reconnect. Mac Chrome and Android Chrome USB connections have been confirmed by the user. New UI interactions are checked in demo mode; live effect toggles still need a hardware check. Serial transport tests use simulated streams; the native check does not substitute for a Chrome permission/stream test. A working native Android implementation establishes a protocol reference, not a guarantee of browser USB access.
-
-- The app supports the observed FX-era state layout. It refuses unknown headers/extensions rather than guessing state write offsets. Firmware variants may need additional parsers.
-- Live edits do not implement a permanent save command. Do not assume edits survive a preset switch or power cycle.
-- Settings export contains names and parameter values only, not complete tone-model/IR binaries; restore/import is not implemented.
-- When writing state, direct monitoring is enabled to preserve audible output while USB editing, matching TUSB's behavior. All other unrelated state bytes are preserved.
-- Preset requests are serialized; do not operate the physical footswitch during a library scan. Response association across asynchronous unsolicited preset details still requires hardware validation.
-- Browser sleep/background behavior depends on the device and operating system. Reconnect/refresh after resuming if needed.
-- A USB `claimInterface` error means Chrome could not obtain the interface. Another app or an OS driver may own it. Desktop Mac Chrome uses Web Serial to access the OS-owned CDC port. Close other editors before connecting. On Android, test WebUSB on the target phone. If Android cannot claim the interface, an Android native USB bridge is the fallback; it is not implemented here.
-- Offline loading works after the app has been successfully opened and cached online. Web fonts are optional and fall back to system fonts.
-
-## Protocol sources and licensing
-
-- [acf1210/TUSB](https://github.com/acf1210/TUSB), MIT: protocol framing, messages, captured state/command fixtures and Android setup reference. Source copyright (c) 2026 acf1210.
-- [Builty/TonexOneController](https://github.com/Builty/TonexOneController), Apache-2.0: preset-summary request verification, parameter ranges and model-specific layout. Parameter table copyright (C) 2025 Greg Smith.
-- [vit3k protocol notes](https://github.com/vit3k/tonex_controller/blob/main/protocol.md): background reference; some examples describe older firmware.
-
-Adapted code and table retain attribution in source. See `THIRD_PARTY_LICENSES.txt` and `licenses/Apache-2.0.txt`.
-
-## Source visibility
-
-The repository remains public and MIT-licensed. Minifying deployment files does not make browser code secret or change its license. To keep the source repository private while continuing to serve a public app, GitHub Pages requires an eligible paid plan, or the deployment must move to another hosting setup.
-
-## Public visit counter
-
-The published GitHub Pages app displays a CounterAPI total in the footer. It attempts one increment per tab session using sessionStorage; reloads only read the total. A new tab/session can count again, and restricted browser storage can cause reloads to count again. This measures sessions, not unique people; public counters can also receive automated requests. Local development and offline starts do not count. CounterAPI receives the visitor's network request (including their IP address); no pedal, preset, or device data is sent. No API key is embedded. Updates can be buffered, so totals may lag. Requests time out after eight seconds and the label stays hidden on failure, without affecting USB editing.
+Independent community project; not affiliated with IK Multimedia. Released under the [MIT license](LICENSE), with [third-party notices](THIRD_PARTY_LICENSES.txt).

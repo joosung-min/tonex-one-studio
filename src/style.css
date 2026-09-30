@@ -75,3 +75,5 @@
 :root[data-theme=dark] .division-buttons button[aria-pressed=true]{color:#142314}
 
 .editor-footer{flex-wrap:wrap;gap:8px 16px}.visit-counter{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.editor-footer .visit-counter{margin-left:auto;text-align:right}
