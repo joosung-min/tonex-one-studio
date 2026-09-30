@@ -19,7 +19,8 @@ const groups=[
 const modelNames={24:['Tone Model','VIR','Off'],25:Array.from({length:11},(_,i)=>`Cabinet ${i+1}`),27:['Mic 1','Mic 2','Mic 3'],30:['Mic 1','Mic 2','Mic 3'],38:['Spring 1','Spring 2','Spring 3','Spring 4','Room','Plate'],65:['Chorus','Tremolo','Phaser','Flanger','Rotary'],96:['Digital','Tape']};
 const labels={2:'Threshold',3:'Release',4:'Depth',7:'Threshold',8:'Make-up gain',9:'Attack',11:'Bass',12:'Bass frequency',13:'Mid',14:'Mid Q',15:'Mid frequency',16:'Treble',17:'Treble frequency',20:'Gain',21:'Volume',22:'Mix',24:'Cabinet mode',25:'VIR cabinet',26:'Resonance',27:'Microphone 1',28:'Mic 1 · X',29:'Mic 1 · Z',30:'Microphone 2',31:'Mic 2 · X',32:'Mic 2 · Z',33:'Mic blend',34:'Presence',35:'Depth'};
 const ampLabels={amp:'Amplifier',eq:'Equalizer',gate:'Noise gate',comp:'Compressor',cab:'Cabinet',mod:'Modulation',delay:'Delay',reverb:'Reverb'};
-let demo=false,busy=false,scanning=false,pedalState=null,presets=[],selected=null,effect='amp',params=[],dirty=false,activePreset=null;
+let demo=false,busy=false,scanning=false,pedalState=null,presets=[],selected=null,effect='amp',params=[],activePreset=null;
+const editedPresets=new Set();
 let confirmationTimer, pendingWrites=new Map(), writeTimer, session=0;
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const active=()=>pedalState?.slots[pedalState.activeSlot];
@@ -113,6 +114,7 @@ function render() {
   $('preset-number').textContent=p?`PRESET ${String(p.id+1).padStart(2,'0')} / 20`:'NO PRESET SELECTED';
   $('preset-name').textContent=p?.name||'Connect your pedal';
   const isActive=!!p&&selected===active();
+  $('edit-status').hidden=!p||!editedPresets.has(selected);
   $('preset-status').hidden=!isActive;
   $('load').hidden=!p||isActive;
   $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'';
@@ -129,7 +131,6 @@ function render() {
   $('firmware-info').hidden=!usb.connected;
   $('firmware-info').textContent=usb.connected?`Firmware ${usb.firmware||'unknown'}`:'';
   $('export-presets').disabled=!presets.some(p=>p.read)||busy;
-  $('reconnect').disabled=busy||demo||usb.connected||!usb.supported;
 }
 function cancelWrites() {pendingWrites.clear();clearTimeout(writeTimer);clearTimeout(confirmationTimer);}
 async function flushWrites() {
@@ -148,7 +149,7 @@ async function confirmParameters() {
 }
 function applyParameter(index,value,rebuild=false) {
   if(!editable())return;const p=parameters[index];value=Math.max(p.min,Math.min(p.max,value));if(p.type!=='range')value=Math.round(value);
-  if(!Number.isFinite(value))return;if(index===24)cabinetModes.remember(selected,value);params[index]=value;presets[selected].parameters=params.slice();dirty=true;
+  if(!Number.isFinite(value))return;if(index===24)cabinetModes.remember(selected,value);params[index]=value;presets[selected].parameters=params.slice();editedPresets.add(selected);$('edit-status').hidden=false;
   if(!demo){pendingWrites.set(index,value);clearTimeout(writeTimer);writeTimer=setTimeout(flushWrites,80);}
   updateControl(index);if(rebuild){renderChain();renderControls();}
 }
@@ -184,14 +185,14 @@ async function runStateChange(change) {
       if(change.preset!==undefined)pedalState.slots[change.slot]=change.preset;
       if(change.bypass!==undefined)pedalState.bypass=change.bypass;
     } else await usb.changeState(change);
-    if(epoch!==session)return;activePreset=active();dirty=false;
+    if(epoch!==session)return;activePreset=active();
     if(!demo){const detail=await usb.getPreset(active());if(epoch!==session)return;storePreset(active(),detail);}
     selected=active();if(change.preset!==undefined)effect='amp';
     params=presets[selected].parameters.slice();$('notice').hidden=true;
   } catch(e){if(epoch===session)notify(e.message);}finally{if(epoch===session){busy=false;render();}}
 }
 function updateTimestamp() { $('sync-label').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('sync-label').title='Last preset refresh'; }
-function reset() {session++;cancelWrites();cabinetModes.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];dirty=false;$('sync-label').textContent='—';render();}
+function reset() {session++;cancelWrites();cabinetModes.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];editedPresets.clear();$('sync-label').textContent='—';render();}
 function startDemo() {
   if(busy||usb.connected)return;reset();demo=true;
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];
@@ -203,7 +204,7 @@ usb.addEventListener('state',e=>{
   const previous=active();pedalState=e.detail;
   if(!pedalState){params=[];render();return;}
   if(previous!==active()) {
-    cancelWrites();dirty=false;activePreset=active();
+    cancelWrites();activePreset=active();
     if(usb.connected&&!busy&&!scanning){selected=active();params=[];render();void usb.getPreset(selected).then(detail=>{if(!busy&&selected===active()){storePreset(selected,detail);params=detail.parameters;render();}}).catch(e=>notify(e.message));}
   } else if(usb.connected&&!busy&&!scanning) render();
 });
@@ -217,17 +218,11 @@ usb.addEventListener('preset',e=>{
   if(presets[selected]){storePreset(selected,e.detail);params=e.detail.parameters;render();}
 });
 usb.addEventListener('connection',e=>{if(!e.detail.connected&&!demo){const reason=e.detail.reason;reset();if(reason)notify(reason);}});
-usb.addEventListener('log',()=>{$('log').textContent=usb.entries.slice(-45).map(e=>`${e.time.slice(11,19)} ${e.direction.toUpperCase()}  ${e.message}${e.hex?`\n  ${e.hex.slice(0,220)}${e.hex.length>220?'…':''}`:''}`).join('\n');});
 $('connect').onclick=async()=>{
   if(usb.connected){await usb.close();return;}if(busy)return;
   reset();busy=true;render();
   try {await usb.connect();busy=false;pedalState=usb.state;await scanPresets();}
   catch(e){busy=false;notify(e.name==='NotFoundError'?'No pedal was selected. Connect your powered ToneX One and try again.':e.message);render();}
-};
-$('reconnect').onclick=async()=>{
-  if(!usb.supported||busy)return;reset();busy=true;render();
-  try{await usb.reconnect();busy=false;pedalState=usb.state;await scanPresets();}
-  catch(e){busy=false;notify(e.message);render();}
 };
 $('refresh').onclick=()=>{if(!busy)void scanPresets();};$('search').oninput=renderPresets;$('demo').onclick=startDemo;$('exit-demo').onclick=reset;
 $('load').onclick=()=>runStateChange({preset:selected,slot:pedalState?.activeSlot});
@@ -239,9 +234,7 @@ document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{
 
 });
 $('nav-presets').onclick=()=>changeView('presets');$('nav-editor').onclick=()=>changeView('editor');
-$('export-log').onclick=()=>download('tonex-usb-diagnostics.json',usb.diagnostics());
 $('export-presets').onclick=()=>download('tonex-preset-settings.json',{format:'tonex-web-settings-v1',demo,exportedAt:new Date().toISOString(),device:usb.descriptors?.serialNumber,note:'Preset metadata and parameters only. Does not include tone model or IR binaries. Cannot be restored by this app.',presets});
-$('support-info').textContent=!isSecureContext?'This address is not secure. Use HTTPS, or localhost on your Mac.':!usb.supported?'USB access is unavailable in this browser. Use Google Chrome on Mac or Android.':usb.transport==='webserial'?'Desktop USB serial is available. Connect your powered ToneX One by USB, close other pedal editors, then select its serial port. Export the log if connection fails.':'WebUSB is available. Connect your powered ToneX One with an OTG data cable and grant USB permission. Export the log if connection fails.';
 $('welcome-copy').textContent=usb.transport==='webserial'?'Connect your powered ToneX One to your Mac with a USB data cable. Open this page in Google Chrome, then select the pedal’s serial port.':'Connect your powered ToneX One with a USB OTG data cable, then allow USB access in Chrome on Android.';
 changeView('editor');render();
 if('serviceWorker' in navigator&&isSecureContext)navigator.serviceWorker.register(new URL('../sw.js',import.meta.url)).catch(()=>{});

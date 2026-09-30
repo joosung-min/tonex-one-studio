@@ -21,7 +21,7 @@ export class ToneXUSB extends EventTarget {
   }
   async connect() {
     if (!globalThis.isSecureContext) throw Error('USB requires HTTPS. Open this tool at an HTTPS address on your phone.');
-    if (!this.usb) throw Error('WebUSB is unavailable. Use Chrome on an Android phone with USB OTG support.');
+    if (!this.usb) throw Error('WebUSB is unavailable. Use web browser on an Android phone with USB OTG support.');
     // Request permission synchronously from the button's click gesture.
     const selected=await this.usb.requestDevice({filters:[{vendorId:VID,productId:PID}]});
     return this.open(selected);
@@ -35,7 +35,7 @@ export class ToneXUSB extends EventTarget {
       this.log('info','USB descriptors recorded.');
       const control=interfaces.find(i=>i.alternates.some(a=>a.interfaceClass===2&&a.interfaceSubclass===2));
       const data=interfaces.find(i=>i.alternates.some(a=>a.interfaceClass===10&&a.endpoints.some(e=>e.direction==='in'&&e.type==='bulk')&&a.endpoints.some(e=>e.direction==='out'&&e.type==='bulk')));
-      if(!control||!data) throw Error('CDC control/data interfaces were not found. Export diagnostics.');
+      if(!control||!data) throw Error('CDC control/data interfaces were not found.');
       this.controlNumber=control.interfaceNumber;
       for(const [iface,cls] of [[control,2],[data,10]]) {
         await device.claimInterface(iface.interfaceNumber);
@@ -49,7 +49,7 @@ export class ToneXUSB extends EventTarget {
       this.decoder=new FrameDecoder(p=>this.receive(p),e=>this.log('error',e));
       void this.readLoop(device,token); await delay(200);
       await this.handshake(token,device.productName);
-    } catch(e) { await this.close(); throw Error(`${e.message}${/claim|SecurityError/.test(e.message+' '+e.name)?' Close other pedal editors and try Chrome on Android. The OS may own this interface; export diagnostics.':''}`); }
+    } catch(e) { await this.close(); throw Error(`${e.message}${/claim|SecurityError/.test(e.message+' '+e.name)?' Close other pedal editors and try web browser on Android. The OS may own this interface.':''}`); }
   }
   async handshake(token,deviceName='ToneX One') {
       let success=false;
@@ -70,8 +70,8 @@ export class ToneXUSB extends EventTarget {
           this.log('error',e.message); await delay(150);
         }
       }
-      if(!success) throw Error('Connection opened, but ToneX did not respond. Check pedal power, USB data cable, and firmware; export diagnostics.');
-      if(!this.state) throw Error('Pedal responded with an unsupported state layout. Export diagnostics.');
+      if(!success) throw Error('Connection opened, but ToneX did not respond. Check pedal power, USB data cable, and firmware.');
+      if(!this.state) throw Error('Pedal responded with an unsupported state layout.');
       this.connected=true; this.emit('connection',{connected:true,device:deviceName,firmware:this.firmware});
   }
   async controlTransfer(request,value,data) {
