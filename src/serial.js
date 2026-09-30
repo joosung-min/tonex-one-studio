@@ -1,7 +1,7 @@
 import {ToneXUSB,delay} from './usb.js';
 import {VID,PID,FrameDecoder,frame} from './protocol.js';
 
-// The pedal uses CDC-ACM over USB. Desktop Chrome opens the OS serial port;
+// The pedal uses CDC-ACM over USB. Desktop browsers with Web Serial open the OS serial port;
 // Android uses WebUSB instead. Both transports share the same ToneX protocol.
 export class ToneXSerial extends ToneXUSB {
   constructor(serial=globalThis.navigator?.serial) {
@@ -10,14 +10,14 @@ export class ToneXSerial extends ToneXUSB {
   }
   get supported() { return !!this.serial; }
   async connect() {
-    if(!globalThis.isSecureContext)throw Error('USB serial access requires HTTPS or localhost. Open this app in Chrome on your Mac.');
-    if(!this.serial)throw Error('Web Serial is unavailable. Open this app in desktop Google Chrome.');
+    if(!globalThis.isSecureContext)throw Error('USB serial access requires HTTPS or localhost. Open this app at a secure address.');
+    if(!this.serial)throw Error('This browser does not support USB serial access. Try another browser with USB support on your desktop or Android device.');
     // Keep the permission picker in the originating click gesture.
     const port=await this.serial.requestPort({filters:[{usbVendorId:VID,usbProductId:PID}]});
     return this.open(port);
   }
   async reconnect() {
-    if(!this.serial)throw Error('Web Serial is unavailable. Use desktop Google Chrome.');
+    if(!this.serial)throw Error('This browser does not support USB serial access. Try another browser with USB support on your desktop or Android device.');
     const ports=await this.serial.getPorts(),port=ports.find(p=>{const info=p.getInfo();return info.usbVendorId===VID&&info.usbProductId===PID;});
     if(!port)throw Error('No authorized ToneX One serial port is connected. Use Connect pedal.');
     return this.open(port);
@@ -40,7 +40,7 @@ export class ToneXSerial extends ToneXUSB {
       await delay(200);await this.handshake(token,'ToneX One');
     } catch(e) {
       await this.close();
-      throw Error(`${e.message} Close TONEX Editor/Librarian and any other app using the pedal, check the USB data cable, then retry in Mac Chrome.`);
+      throw Error(`${e.message} Close TONEX Editor/Librarian and any other app using the pedal, check the USB data cable, then reconnect in your web browser.`);
     }
   }
   async readSerial(reader,token) {

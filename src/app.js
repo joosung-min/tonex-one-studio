@@ -297,7 +297,7 @@ document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{
 });
 $('nav-presets').onclick=()=>changeView('presets');$('nav-editor').onclick=()=>changeView('editor');
 $('export-presets').onclick=()=>download('tonex-preset-settings.json',{format:'tonex-web-settings-v1',demo,exportedAt:new Date().toISOString(),device:usb.descriptors?.serialNumber,note:'Preset metadata and parameters only. Does not include tone model or IR binaries. Cannot be restored by this app.',presets});
-$('welcome-copy').textContent=usb.transport==='webserial'?'Connect your powered ToneX One to your Mac with a USB data cable. Open this page in Google Chrome, then select the pedal’s serial port.':'Connect your powered ToneX One with a USB OTG data cable, then allow USB access in Chrome on Android.';
+$('welcome-copy').textContent='Connect your powered ToneX One to your desktop or Android device using a USB data cable. Close any other TONEX Editor apps, then press “Connect pedal” and allow USB access when prompted.';
 changeView('editor');render();
 if('serviceWorker' in navigator&&isSecureContext)navigator.serviceWorker.register(new URL('../sw.js',import.meta.url)).catch(()=>{});
 

@@ -20,8 +20,8 @@ export class ToneXUSB extends EventTarget {
     return this.open(device);
   }
   async connect() {
-    if (!globalThis.isSecureContext) throw Error('USB requires HTTPS. Open this tool at an HTTPS address on your phone.');
-    if (!this.usb) throw Error('WebUSB is unavailable. Use web browser on an Android phone with USB OTG support.');
+    if (!globalThis.isSecureContext) throw Error('USB access requires HTTPS. Open this tool at a secure address.');
+    if (!this.usb) throw Error('This browser does not support USB access. Try another browser with USB support on your desktop or Android device.');
     // Request permission synchronously from the button's click gesture.
     const selected=await this.usb.requestDevice({filters:[{vendorId:VID,productId:PID}]});
     return this.open(selected);

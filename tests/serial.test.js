@@ -45,7 +45,7 @@ test('fatal serial read errors close the port and reject the pending request',as
  connection.send=async()=>{};const request=connection.exchange(bytes(1),0x0306);const rejected=assert.rejects(request,/Cable removed/);
  serial.port.controller.error(Error('Cable removed'));await rejected;assert.equal((await closed).reason,'Cable removed');assert.equal(serial.port.closeCount,1);
 });
-test('signal setup failure releases the opened port and gives Mac troubleshooting instructions',async()=>{
+test('signal setup failure releases the opened port and gives USB troubleshooting instructions',async()=>{
  const serial=new Serial();serial.port.setSignals=async()=>{throw Error('Signal setup failed');};const connection=new ToneXSerial(serial);
  await assert.rejects(connection.connect(),/Close TONEX Editor/);assert.equal(serial.port.closeCount,1);assert.equal(connection.connected,false);assert.equal(connection.writer,null);
 });
