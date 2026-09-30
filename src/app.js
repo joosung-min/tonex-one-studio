@@ -1,5 +1,6 @@
 import {createPedalConnection} from './serial.js';
 import {parameters} from './parameters.js';
+import {effectIcon} from './effect-icons.js';
 import {bindEffectInteractions} from './effect-interactions.js';
 const $=id=>document.getElementById(id), usb=createPedalConnection();
 const groups=[
@@ -50,7 +51,7 @@ function renderChain() {
   if(!$('chain').children.length) {
     $('chain').innerHTML=chainOrder.map(id=>{
       const g=groups.find(group=>group.id===id);
-      return `<button class="effect-block" data-effect="${g.id}" aria-pressed="false"><span class="effect-symbol" aria-hidden="true">${g.symbol}</span><span class="effect-label">${g.name}</span><span class="effect-state"></span><i class="effect-led" aria-hidden="true"></i></button>`;
+      return `<button class="effect-block" data-effect="${g.id}" aria-pressed="false"><span class="effect-symbol" aria-hidden="true">${effectIcon(g.id)}</span><span class="effect-label">${g.name}</span><span class="effect-state"></span><i class="effect-led" aria-hidden="true"></i></button>`;
     }).join('');
     document.querySelectorAll('[data-effect]').forEach(button=>{
       const g=groups.find(group=>group.id===button.dataset.effect);
@@ -70,7 +71,7 @@ function renderChain() {
     const on=known&&(g.enable===undefined||params[g.enable]===1)&&!(g.id==='cab'&&params[24]===2);
     button.classList.toggle('selected',effect===g.id);button.classList.toggle('on',on);
     button.setAttribute('aria-pressed',String(effect===g.id));
-    button.querySelector('.effect-state').textContent=!known?'—':on?'On':'Bypassed';
+    button.querySelector('.effect-state').textContent=!known?'—':on?'On':'Off';
     button.title=quickToggle.has(g.id)?`${g.name}: select to edit; double-click or double-tap to toggle${!editable()?' after loading the preset':''}`:`${g.name}: select to edit`;
   });
 }
@@ -78,7 +79,7 @@ function renderControls() {
   const g=groups.find(g=>g.id===effect), enabled=editable(),disabled=enabled?'':'disabled';
   $('effect-name').textContent=ampLabels[effect];$('effect-category').textContent=g.category;
   $('effect-actions').className='effect-actions';
-  $('effect-actions').innerHTML=(g.position!==undefined?`<select data-param="${g.position}" aria-label="Effect position" ${disabled}><option value="0" ${params[g.position]!==1?'selected':''}>Pre amp</option><option value="1" ${params[g.position]===1?'selected':''}>Post amp</option></select>`:'')+(g.model!==undefined?`<select data-param="${g.model}" aria-label="Effect model" ${disabled}>${modelNames[g.model].map((n,i)=>`<option value="${i}" ${params[g.model]===i?'selected':''}>${n}</option>`).join('')}</select>`:'')+(g.enable!==undefined?`<button class="toggle ${params[g.enable]!==1?'off':''}" data-toggle="${g.enable}" aria-pressed="${params[g.enable]===1}" ${disabled}>${params[g.enable]===1?'● Enabled':'○ Bypassed'}</button>`:'');
+  $('effect-actions').innerHTML=(g.position!==undefined?`<select data-param="${g.position}" aria-label="Effect position" ${disabled}><option value="0" ${params[g.position]!==1?'selected':''}>Pre amp</option><option value="1" ${params[g.position]===1?'selected':''}>Post amp</option></select>`:'')+(g.model!==undefined?`<select data-param="${g.model}" aria-label="Effect model" ${disabled}>${modelNames[g.model].map((n,i)=>`<option value="${i}" ${params[g.model]===i?'selected':''}>${n}</option>`).join('')}</select>`:'')+(g.enable!==undefined?`<button class="toggle ${params[g.enable]!==1?'off':''}" data-toggle="${g.enable}" aria-pressed="${params[g.enable]===1}" ${disabled}>${params[g.enable]===1?'● On':'○ Off'}</button>`:'');
   $('parameter-controls').innerHTML=indicesFor(g).map(index=>{
     const p=parameters[index],v=params[index],title=label(p);
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
@@ -104,22 +105,23 @@ function render() {
   const p=presets.find(p=>p.id===selected),online=demo||usb.connected;
   $('preset-number').textContent=p?`PRESET ${String(p.id+1).padStart(2,'0')} / 20`:'NO PRESET SELECTED';
   $('preset-name').textContent=p?.name||'Connect your pedal';
-  $('preset-tag').textContent=demo?'DEMO PRESET':p?'ON PEDAL':'USB EDITOR';
-  $('preset-detail').textContent=p?(selected===active()?(demo?'Active on simulated pedal':'Active on your pedal'):'Ready to load'):'Your stored presets will appear here.';
-  $('load-status').textContent=selected===active()&&pedalState?`Playing in slot ${'ABC'[pedalState.activeSlot]} · ${pedalState.stomp?'Stomp':'Dual'} mode`:'Choose a preset, then load it into a slot.';
+  const isActive=!!p&&selected===active();
+  $('preset-status').hidden=!p;
+  $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'Ready to load';
+  $('preset-status').classList.toggle('ready-to-load',!!p&&!isActive);
   $('status-text').textContent=busy?(scanning?'Reading presets…':'Connecting / syncing…'):demo?'Demo mode':usb.connected?(usb.transport==='webserial'?'USB serial connected':'USB connected'):'Not connected';
   $('status-dot').className=usb.connected?'live':'';
   $('connect').textContent=usb.connected?'Disconnect':'↗ Connect pedal';$('connect').disabled=busy;
   $('refresh').disabled=!online||busy;$('refresh').classList.toggle('spinner',scanning);
   $('load').disabled=!ready()||!p?.read;
-  $('target-slot').disabled=!ready();$('bypass').disabled=!ready();
-  $('bypass').setAttribute('aria-pressed',String(!!pedalState?.bypass));$('bypass').innerHTML=`<i></i> ${pedalState?.bypass?'Pedal bypassed':'Pedal active'}`;
-  document.querySelectorAll('[data-slot]').forEach(b=>{b.classList.toggle('active',Number(b.dataset.slot)===pedalState?.activeSlot);b.disabled=!ready();});
-  $('slot-label').textContent=pedalState?.stomp?'STOMP MODE':'DUAL MODE';
+  document.querySelectorAll('[data-slot]').forEach(b=>{
+    const current=Number(b.dataset.slot)===pedalState?.activeSlot;
+    b.classList.toggle('active',current);b.setAttribute('aria-pressed',String(current));b.disabled=!ready();
+  });
   $('welcome').hidden=online;$('demo-banner').hidden=!demo;
-  $('device-info').textContent=usb.connected?`${usb.transport==='webserial'?'USB serial':'USB'} ${usb.firmware?`· Firmware ${usb.firmware}`:'· Firmware unknown'}`:demo?'Simulated pedal':usb.transport==='webserial'?'Mac / desktop Chrome + USB':'Android + USB OTG';
-  $('mode-label').textContent=demo?'DEMO WORKSPACE':usb.connected?'CONNECTED WORKSPACE':'USB PEDAL WORKSPACE';
-  $('edit-status').textContent=demo?'Simulated controls':dirty?'Live changes · Not saved':usb.connected?'Synced from pedal':'Live controls after connection';
+  $('firmware-info').hidden=!usb.connected;
+  $('firmware-info').textContent=usb.connected?`Firmware ${usb.firmware||'unknown'}`:'';
+  $('edit-status').textContent=demo?'Simulated controls':dirty?'Edited · Not saved':usb.connected?'Synced':'Live controls after connection';
   $('export-presets').disabled=!presets.some(p=>p.read)||busy;
   $('reconnect').disabled=busy||demo||usb.connected||!usb.supported;
 }
@@ -135,7 +137,7 @@ async function confirmParameters() {
   if(!usb.connected||busy||scanning||selected!==active())return;
   const epoch=session,id=active();
   try {const detail=await usb.getPreset(id);if(epoch!==session||active()!==id||selected!==id||pendingWrites.size)return;
-    storePreset(id,detail);params=detail.parameters;renderChain();renderControls();$('edit-status').textContent='Read back from pedal · Not saved';
+    storePreset(id,detail);params=detail.parameters;renderChain();renderControls();$('edit-status').textContent='Edited · Not saved';
   }catch(e){if(epoch===session){usb.log('error',e.message);$('edit-status').textContent='Sent · Readback unavailable';}}
 }
 function applyParameter(index,value,rebuild=false) {
@@ -151,7 +153,7 @@ function storePreset(id,detail) {
   if(!demo)try{localStorage.setItem('tonex-last-read',JSON.stringify({device:usb.device?.serialNumber,readAt:new Date().toISOString(),presets}));}catch{/* Local storage is optional. */}
 }
 async function scanPresets() {
-  if(demo){notify('Demo library refreshed.',true);return;}
+  if(demo){updateTimestamp();return;}
   cancelWrites();busy=true;scanning=true;render();const epoch=session;
   let read=0;
   try {
@@ -164,33 +166,33 @@ async function scanPresets() {
     }
     await usb.getState();selected=active();activePreset=active();
     const detail=await usb.getPreset(selected);storePreset(selected,detail);params=detail.parameters;
-    $('sync-label').textContent=`20 presets read · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
-    notify('Presets read from your pedal. Choose a preset to load, or edit the active sound.',true);
+    updateTimestamp();$('notice').hidden=true;
   } catch(e) {
     if(epoch===session){notify(`Read ${read}/20 presets. ${e.message}`);$('sync-label').textContent=`${read}/20 presets read · Retry refresh`;}
   } finally {if(epoch===session){busy=false;scanning=false;render();}}
 }
-async function runStateChange(change) {
-  if(!ready())return;cancelWrites();busy=true;render();const epoch=session;
+async function runStateChange(change,{keepSelection=false}={}) {
+  if(!ready())return;const previousSelection=selected;cancelWrites();busy=true;render();const epoch=session;
   try {
     if(demo) {
       if(change.slot!==undefined){pedalState.activeSlot=change.slot;pedalState.stomp=change.slot===2;}
       if(change.preset!==undefined)pedalState.slots[change.slot]=change.preset;
       if(change.bypass!==undefined)pedalState.bypass=change.bypass;
     } else await usb.changeState(change);
-    if(epoch!==session)return;selected=active();activePreset=active();dirty=false;
-    if(!demo){const detail=await usb.getPreset(selected);if(epoch!==session)return;storePreset(selected,detail);params=detail.parameters;}
-    else params=presets[selected].parameters.slice();
-    notify(demo?'Demo pedal updated.':`Pedal confirmed slot ${'ABC'[pedalState.activeSlot]}.`,true);
+    if(epoch!==session)return;activePreset=active();dirty=false;
+    if(!demo){const detail=await usb.getPreset(active());if(epoch!==session)return;storePreset(active(),detail);}
+    selected=keepSelection&&presets[previousSelection]?.read?previousSelection:active();
+    params=presets[selected].parameters.slice();$('notice').hidden=true;
   } catch(e){if(epoch===session)notify(e.message);}finally{if(epoch===session){busy=false;render();}}
 }
-function reset() {session++;cancelWrites();demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];dirty=false;$('sync-label').textContent='Connect to read your presets';render();}
+function updateTimestamp() { $('sync-label').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('sync-label').title='Last preset refresh'; }
+function reset() {session++;cancelWrites();demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];dirty=false;$('sync-label').textContent='—';render();}
 function startDemo() {
   if(busy||usb.connected)return;reset();demo=true;
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];
   const colors=['#86a872','#c6a270','#839fac','#b88f81'];
   presets=names.map((name,id)=>{const values=parameters.map(p=>p.default);values[20]=3.4+(id%6)*.7;values[21]=5.2;values[11]=5.4;values[13]=4.8;values[16]=6.2;values[95]=1;values[99]=320;values[102]=18;values[42]=22;return {id,name,color:colors[id%4],parameters:values,read:true};});
-  pedalState={slots:[0,1,2],activeSlot:0,stomp:false,bypass:false};selected=0;activePreset=0;params=presets[0].parameters.slice();$('sync-label').textContent='20 sample presets · Demo library';$('notice').hidden=true;render();
+  pedalState={slots:[0,1,2],activeSlot:0,stomp:false,bypass:false};selected=0;activePreset=0;params=presets[0].parameters.slice();updateTimestamp();$('notice').hidden=true;render();
 }
 usb.addEventListener('state',e=>{
   const previous=active();pedalState=e.detail;
@@ -223,9 +225,11 @@ $('reconnect').onclick=async()=>{
   catch(e){busy=false;notify(e.message);render();}
 };
 $('refresh').onclick=()=>{if(!busy)void scanPresets();};$('search').oninput=renderPresets;$('demo').onclick=startDemo;$('exit-demo').onclick=reset;
-$('load').onclick=()=>runStateChange({preset:selected,slot:Number($('target-slot').value)});
-$('bypass').onclick=()=>runStateChange({bypass:!pedalState.bypass});
-document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>runStateChange({slot:Number(b.dataset.slot)}));
+$('load').onclick=()=>runStateChange({preset:selected,slot:pedalState?.activeSlot});
+document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{
+  const slot=Number(b.dataset.slot);
+  if(slot!==pedalState?.activeSlot)void runStateChange({slot},{keepSelection:true});
+});
 $('nav-presets').onclick=()=>changeView('presets');$('nav-editor').onclick=()=>changeView('editor');
 $('export-log').onclick=()=>download('tonex-usb-diagnostics.json',usb.diagnostics());
 $('export-presets').onclick=()=>download('tonex-preset-settings.json',{format:'tonex-web-settings-v1',demo,exportedAt:new Date().toISOString(),device:usb.descriptors?.serialNumber,note:'Preset metadata and parameters only. Does not include tone model or IR binaries. Cannot be restored by this app.',presets});

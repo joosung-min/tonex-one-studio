@@ -17,12 +17,12 @@ for(const prefix of ['/','/tonex-one-web/']) {
  });
  test(`service worker cache and offline fallback stay inside ${prefix}`,async()=>{
   const handlers={},added=[],deleted=[],matches=[];
-  const appPrefix=`tonex-studio:${prefix}:`,cacheName=appPrefix+'v5';
-  const caches={open:async()=>({addAll:async urls=>added.push(...urls)}),keys:async()=>[appPrefix+'v4',cacheName,'tonex-studio:/other/:v4'],delete:async key=>deleted.push(key),match:async(url,options)=>{matches.push({url,options});return String(url).endsWith('index.html')?'offline HTML':undefined;}};
+  const appPrefix=`tonex-studio:${prefix}:`,cacheName=appPrefix+'v6';
+  const caches={open:async()=>({addAll:async urls=>added.push(...urls)}),keys:async()=>[appPrefix+'v5',cacheName,'tonex-studio:/other/:v4'],delete:async key=>deleted.push(key),match:async(url,options)=>{matches.push({url,options});return String(url).endsWith('index.html')?'offline HTML':undefined;}};
   vm.runInNewContext(read('sw.js'),{URL,Response,self:{location:{href:`https://example.github.io${prefix}sw.js`},addEventListener:(type,handler)=>handlers[type]=handler},caches,fetch:async()=>{throw Error('offline');}});
   let pending;handlers.install({waitUntil:p=>pending=p});await pending;
-  assert.equal(added.length,12);assert.ok(added.every(url=>url.startsWith(`https://example.github.io${prefix}`)));
-  handlers.activate({waitUntil:p=>pending=p});await pending;assert.deepEqual(deleted,[appPrefix+'v4']);
+  assert.equal(added.length,13);assert.ok(added.every(url=>url.startsWith(`https://example.github.io${prefix}`)));
+  handlers.activate({waitUntil:p=>pending=p});await pending;assert.deepEqual(deleted,[appPrefix+'v5']);
   let response;handlers.fetch({request:{url:`https://example.github.io${prefix}`,method:'GET',mode:'navigate'},respondWith:p=>response=p});assert.equal(await response,'offline HTML');
   assert.ok(matches.every(m=>m.options.cacheName===cacheName));
   let handled=false;handlers.fetch({request:{url:'https://different.example/',method:'GET'},respondWith:()=>handled=true});assert.equal(handled,false);

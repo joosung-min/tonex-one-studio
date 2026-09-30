@@ -81,3 +81,15 @@ test('invalid state layout surfaces its specific error instead of retrying as a 
  assert.equal(connection.entries.filter(e=>e.message.startsWith('Handshake')).length,1);
  assert.equal(serial.port.closeCount,1);
 });
+
+test('switching the load destination to B or C preserves assignments in other slots',async()=>{
+ const serial=new Serial(),connection=new ToneXSerial(serial);await connection.connect();
+ const original=connection.state.slots.slice();
+ await connection.changeState({slot:1});
+ let state=await connection.changeState({preset:9,slot:connection.state.activeSlot});
+ assert.deepEqual(state.slots,[original[0],9,original[2]]);assert.equal(state.activeSlot,1);assert.equal(state.stomp,false);
+ await connection.changeState({slot:2});
+ state=await connection.changeState({preset:14,slot:connection.state.activeSlot});
+ assert.deepEqual(state.slots,[original[0],9,14]);assert.equal(state.activeSlot,2);assert.equal(state.stomp,true);
+ await connection.close();
+});
