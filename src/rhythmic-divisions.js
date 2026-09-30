@@ -9,5 +9,5 @@ export const rhythmicDivisions=[
 ].map((label,value)=>({label,value}));
 
 export const divisionButtons=[
- {label:'1/4',value:9},{label:'1/4D',value:10},{label:'1/8',value:6},{label:'1/8D',value:7},{label:'1/16',value:3}
+ {label:'1/4D',value:10},{label:'1/4',value:9},{label:'1/8D',value:7},{label:'1/8',value:6},{label:'1/16',value:3}
 ];

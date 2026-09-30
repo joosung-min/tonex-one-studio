@@ -15,13 +15,14 @@ A desktop and mobile web editor for the original IK Multimedia ToneX One. Indepe
 - Compact slider and numeric parameter controls without decorative knobs. Mod/Delay Division controls offer five musical shortcut buttons, disabled while Sync is off; other stored divisions are shown and preserved until a shortcut is selected.
 - Parameter updates coalesced at 80 ms, followed by preset readback; physical parameter and state notifications are observed.
 - Mobile preset/editor navigation, search, numeric inputs, explicit demo mode, settings JSON export.
-- PWA manifest and offline app-shell cache; no backend or build dependencies.
+- PWA manifest and offline app-shell cache; no backend; production assets are bundled and minified with esbuild.
 
 ## Run locally
 
 Node.js 20 or newer:
 
 ```sh
+npm ci
 npm run dev
 ```
 
@@ -47,7 +48,7 @@ Desktop selects Web Serial automatically. This uses macOS's USB serial driver ra
 
 ## Test on an Android phone
 
-1. Serve this directory on an **HTTPS** static host, preserving the `/src` and `/public` directories. There is no build step. Do not upload the temporary reference repositories from `/tmp`.
+1. Run `npm ci` and `npm run build`, then serve only `dist/` on an **HTTPS** static host. Keep its generated `/assets`, `/public`, and license files together.
 2. Alternatively run the local server with a trusted certificate for a hostname reachable from the phone:
 
    ```sh
@@ -58,9 +59,9 @@ Desktop selects Web Serial automatically. This uses macOS's USB serial driver ra
 3. Power the ToneX One and connect the phone with an OTG-capable **data** cable. Use a powered OTG hub if needed for the phone/pedal power arrangement.
 4. Open the HTTPS URL in Chrome on Android, tap **Connect pedal**, select ToneX One, and accept Android's USB permission prompt.
 5. The app handshakes, reads device state and then reads the 20 stored preset summaries. Select a preset and tap **Load preset**, or edit the currently active preset.
-6. If it fails, expand **Connection diagnostics** and download the USB log. It includes device descriptors and received/transmitted messages.
+6. If it fails, check the displayed error, close other pedal editors, and reconnect with a USB data cable.
 
-The website cannot open itself automatically when a cable is inserted. Initial access requires a click and permission. **Reconnect authorized pedal** can reopen an already authorized attached device without choosing it again.
+The website cannot open itself automatically when a cable is inserted. Initial access requires a click and permission. Use **Connect pedal** to reconnect after disconnecting.
 
 ## Publish with GitHub Pages
 
@@ -72,7 +73,7 @@ Use a separate repository for this app, not the parent MIXIE repository. The app
 4. Once deployment succeeds, open the URL shown in the `github-pages` environment. Enable **Enforce HTTPS** in Pages settings if it is not already enforced.
 5. Connect the pedal in desktop Chrome or Android Chrome. The new website origin asks for its own device permission, even if localhost was already authorized.
 
-The workflow checks the code, runs the tests, and publishes only `dist/`. `npm run build` creates that folder from the app assets and third-party licenses. The local server, tests, README and diagnostics are excluded from the hosted website. No server process or credentials are required in the website. GitHub Pages HTTPS hosts the interface; USB data stays local to the browser and pedal.
+The workflow checks the code, runs the tests, and publishes only `dist/`. `npm run build` creates that folder with hashed, minified JavaScript/CSS and the required MIT/third-party notices. Individual source modules, source maps, build metadata, and package files are excluded. `npm run preview` serves the built app locally. The local server, tests, README and diagnostics are excluded from the hosted website. No server process or credentials are required in the website. GitHub Pages HTTPS hosts the interface; USB data stays local to the browser and pedal.
 
 ## Verification status and limitations
 
@@ -94,3 +95,7 @@ Automated protocol checks use a real state fixture and command/notification vect
 - [vit3k protocol notes](https://github.com/vit3k/tonex_controller/blob/main/protocol.md): background reference; some examples describe older firmware.
 
 Adapted code and table retain attribution in source. See `THIRD_PARTY_LICENSES.txt` and `licenses/Apache-2.0.txt`.
+
+## Source visibility
+
+The repository remains public and MIT-licensed. Minifying deployment files does not make browser code secret or change its license. To keep the source repository private while continuing to serve a public app, GitHub Pages requires an eligible paid plan, or the deployment must move to another hosting setup.

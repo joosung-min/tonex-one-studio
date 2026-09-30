@@ -2,12 +2,12 @@ import http from 'node:http';
 import https from 'node:https';
 import {readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
-const root=process.cwd(), port=Number(process.env.PORT||5173);
+const root=path.resolve(process.cwd(),process.argv[2]||'.'), port=Number(process.env.PORT||5173);
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.txt':'text/plain'};
 const handler=async(req,res)=>{
   try {
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-    const file=path.resolve(root,`.${pathname==='/'?'/index.html':pathname}`);
+    const file=path.resolve(root,`.${pathname.endsWith('/')?pathname+'index.html':pathname}`);
     const relative=path.relative(root,file);
     if(relative.startsWith('..')||path.isAbsolute(relative)||relative.split(path.sep).some(s=>s.startsWith('.'))) {res.writeHead(403);return res.end('Forbidden');}
     if(!(await stat(file)).isFile())throw Error('Not a file');

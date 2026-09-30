@@ -14,6 +14,6 @@ test('every supported Mod and Delay division follows its matching Sync parameter
 });
 
 test('five Division shortcuts match their existing pedal wire values',()=>{
- assert.deepEqual(divisionButtons,[{label:'1/4',value:9},{label:'1/4D',value:10},{label:'1/8',value:6},{label:'1/8D',value:7},{label:'1/16',value:3}]);
+ assert.deepEqual(divisionButtons,[{label:'1/4D',value:10},{label:'1/4',value:9},{label:'1/8D',value:7},{label:'1/8',value:6},{label:'1/16',value:3}]);
  for(const option of divisionButtons)assert.equal(rhythmicDivisions[option.value].label.split(' — ')[0].replace(' dotted','D'),option.label);
 });
