@@ -1,3 +1,4 @@
+import {TapTempo} from './tap-tempo.js';
 import {APP_VERSION} from './version.js';
 import {CabinetModes} from './cabinet-mode.js';
 import {createPedalConnection} from './serial.js';
@@ -20,6 +21,8 @@ const modelNames={24:['Tone Model','VIR','Off'],25:Array.from({length:11},(_,i)=
 const labels={2:'Threshold',3:'Release',4:'Depth',7:'Threshold',8:'Make-up gain',9:'Attack',11:'Bass',12:'Bass frequency',13:'Mid',14:'Mid Q',15:'Mid frequency',16:'Treble',17:'Treble frequency',20:'Gain',21:'Volume',22:'Mix',24:'Cabinet mode',25:'VIR cabinet',26:'Resonance',27:'Microphone 1',28:'Mic 1 · X',29:'Mic 1 · Z',30:'Microphone 2',31:'Mic 2 · X',32:'Mic 2 · Z',33:'Mic blend',34:'Presence',35:'Depth'};
 const ampLabels={amp:'Amplifier',tempo:'Global BPM',gate:'Noise gate',comp:'Compressor',cab:'Cabinet',mod:'Modulation',delay:'Delay',reverb:'Reverb'};
 let demo=false,busy=false,scanning=false,pedalState=null,presets=[],selected=null,effect='amp',params=[],activePreset=null;
+const tapTempo=new TapTempo();
+let tapTimer,pendingTapTempo=null,tapPreview=null,tapWriting=false;
 let confirmationTimer, pendingWrites=new Map(), writeTimer, session=0;
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const active=()=>pedalState?.slots[pedalState.activeSlot];
@@ -58,6 +61,7 @@ function renderChain() {
     }).join('');
     document.querySelectorAll('[data-effect]').forEach(button=>{
       const g=groups.find(group=>group.id===button.dataset.effect);
+      if(g.id==='tempo'){button.addEventListener('click',()=>tapGlobalTempo(button));return;}
       bindEffectInteractions(button,{
         select:()=>{effect=g.id;renderChain();renderControls();},
         toggle:()=>toggleEffect(g)
@@ -68,7 +72,7 @@ function renderChain() {
     const g=groups.find(group=>group.id===button.dataset.effect);
     if(g.id==='tempo'){
       button.classList.toggle('selected',effect==='tempo');button.classList.remove('on');button.setAttribute('aria-pressed',String(effect==='tempo'));
-      button.querySelector('.effect-state').textContent=Number.isFinite(pedalState?.tempo)?`${Number(pedalState.tempo.toFixed(1))} BPM`:'— BPM';button.title='Global tempo';return;
+      button.querySelector('.effect-state').textContent=Number.isFinite(tapPreview??pedalState?.tempo)?`${Number((tapPreview??pedalState.tempo).toFixed(1))} BPM`:'— BPM';button.title='Tap repeatedly to set global tempo';return;
     }
     const known=params.length===109;
     const on=known&&(g.enable===undefined||params[g.enable]===1)&&!(g.id==='cab'&&params[24]===2);
@@ -99,10 +103,10 @@ function renderControls() {
     return `${heading}<div class="control"><label class="control-label" for="range-${index}">${title}</label><div id="knob-${index}" class="knob" style="--angle:${Number.isFinite(v)?270*(v-p.min)/(p.max-p.min):0}deg" aria-hidden="true"></div><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
   }).join('');
   if(effect==='tempo'){
-    $('parameter-controls').innerHTML=`<div class="tempo-control"><label class="control-label" for="tempo-value">Global tempo</label><div class="tempo-input"><input id="tempo-value" aria-label="Global BPM" type="number" min="40" max="240" step="0.1" value="${Number.isFinite(pedalState?.tempo)?Number(pedalState.tempo.toFixed(1)):''}" placeholder="—" ${ready()?'':'disabled'}><span>BPM</span></div><button id="apply-tempo" class="secondary" ${ready()?'':'disabled'}>Apply tempo</button></div>`;
-    $('apply-tempo').onclick=()=>void applyTempo();
-    $('tempo-value').onkeydown=e=>{if(e.key==='Enter')void applyTempo();};
-    $('parameter-note').textContent=demo?'Demo tempo is simulated.':'Global tempo applies across presets. Effects follow it when their tempo sync is enabled.';return;
+    $('parameter-controls').innerHTML=`<div class="tempo-control"><label class="control-label" for="tempo-value">Global tempo</label><div class="tempo-input"><input id="tempo-value" aria-label="Global BPM" type="number" min="40" max="240" step="0.1" value="${Number.isFinite(tapPreview??pedalState?.tempo)?Number((tapPreview??pedalState.tempo).toFixed(1)):''}" placeholder="—" ${ready()?'':'disabled'}><span>BPM</span></div><button id="apply-tempo" class="secondary" ${ready()?'':'disabled'}>Apply tempo</button></div>`;
+    $('apply-tempo').onclick=()=>void applyManualTempo();
+    $('tempo-value').onkeydown=e=>{if(e.key==='Enter')void applyManualTempo();};
+    $('parameter-note').textContent=demo?'Demo tempo is simulated.':'Tap the Global BPM card to set tempo, or enter a value here. Effects follow tempo when their sync is enabled.';return;
   }
   if($('cab-toggle'))$('cab-toggle').onclick=()=>toggleEffect(g);
   document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.toggle),params[b.dataset.toggle]===1?0:1,true));
@@ -170,13 +174,39 @@ function applyParameter(index,value,rebuild=false) {
   if(!demo){pendingWrites.set(index,value);clearTimeout(writeTimer);writeTimer=setTimeout(flushWrites,80);}
   updateControl(index);if(rebuild){renderChain();renderControls();}
 }
-async function applyTempo() {
+function resetTapTempo(){clearTimeout(tapTimer);tapTempo.reset();pendingTapTempo=null;tapPreview=null;tapWriting=false;}
+function tapGlobalTempo(button){
+  effect='tempo';
+  if((demo||usb.connected)&&pedalState&&!scanning&&(!busy||tapWriting)){
+    button.getAnimations().forEach(animation=>animation.cancel());
+    button.animate([{boxShadow:'0 0 0 0 var(--accent)'},{boxShadow:'0 0 0 5px transparent'}],{duration:220});
+    const tempo=tapTempo.tap(performance.now());
+    if(tempo!==null){tapPreview=tempo;pendingTapTempo=tempo;clearTimeout(tapTimer);tapTimer=setTimeout(()=>void flushTapTempo(),200);}
+  }
+  renderChain();renderControls();
+}
+async function flushTapTempo(){
+  if(tapWriting||pendingTapTempo===null)return;
+  if(!ready()){pendingTapTempo=null;tapPreview=null;renderChain();if(effect==='tempo')renderControls();return;}
+  const tempo=pendingTapTempo,epoch=session;pendingTapTempo=null;tapWriting=true;
+  try{await applyTempo(tempo);}
+  finally{
+    if(epoch!==session)return;
+    tapWriting=false;
+    if(pendingTapTempo!==null)tapTimer=setTimeout(()=>void flushTapTempo(),200);
+    else {tapPreview=null;renderChain();if(effect==='tempo')renderControls();}
+  }
+}
+async function applyManualTempo(){
+  const tempo=Number($('tempo-value').value);resetTapTempo();await applyTempo(tempo);
+}
+async function applyTempo(tempo) {
   if(!ready())return;
-  const tempo=Number($('tempo-value').value);
   if(!Number.isFinite(tempo)||tempo<40||tempo>240){notify('Enter a tempo between 40 and 240 BPM.');return;}
+  const epoch=session;
   if(pendingWrites.size)await flushWrites();
-  if(!ready())return;
-  clearTimeout(confirmationTimer);busy=true;render();const epoch=session;
+  if(epoch!==session||!ready())return;
+  clearTimeout(confirmationTimer);busy=true;render();
   try {
     if(demo)pedalState.tempo=tempo;
     else {const state=await usb.changeState({tempo});if(epoch!==session)return;pedalState=state;}
@@ -223,7 +253,7 @@ async function runStateChange(change) {
   } catch(e){if(epoch===session)notify(e.message);}finally{if(epoch===session){busy=false;render();}}
 }
 function updateTimestamp() { $('sync-label').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('sync-label').title='Last preset refresh'; }
-function reset() {session++;cancelWrites();cabinetModes.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];$('sync-label').textContent='—';render();}
+function reset() {session++;resetTapTempo();cancelWrites();cabinetModes.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];$('sync-label').textContent='—';render();}
 function startDemo() {
   if(busy||usb.connected)return;reset();demo=true;
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];

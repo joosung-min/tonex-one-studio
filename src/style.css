@@ -57,3 +57,6 @@
 .tempo-input{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 18px}.tempo-input input{width:130px;font-size:36px;text-align:center;background:var(--field);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:8px}.tempo-input span{font-size:15px;color:var(--muted)}
 
 :root[data-theme=dark] .slot-buttons button.active{color:var(--slot-ink)}
+
+/* Effect identity remains visible when bypassed. */
+.effect-block[data-effect=gate],.effect-block[data-effect=comp],.effect-block[data-effect=mod],.effect-block[data-effect=delay],.effect-block[data-effect=reverb]{border-color:var(--effect-color);border-width:2px}

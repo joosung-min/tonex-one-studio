@@ -1,4 +1,5 @@
 const drawings={
+  mod:'<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><path d="M7 12c2-6 3 6 5 0s3 6 5 0"/><circle cx="12" cy="18" r="1.8"/><path d="M2 8h3m14 0h3"/>',
   tempo:'<path d="M7 21l3-18h4l3 18zM12 16l6-10M9 18h6"/><circle cx="12" cy="16" r="1"/>',
   gate:'<path d="M3 21V5h3V3h3v2h2v3h2V5h2V3h3v2h3v16M3 11h18M8 21v-5a4 4 0 0 1 8 0v5M10 15v6m4-6v6M2 21h20"/>',
   amp:'<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M8 6V4h8v2M2 14h20M5 20v2m14-2v2M5 10h7"/><circle cx="15" cy="10" r="1"/><circle cx="19" cy="10" r="1"/><path d="M6 17h12"/>',
@@ -9,6 +10,5 @@ const drawings={
   reverb:'<path d="M2 21V7l4-4h12l4 4v14M2 7l5 4m15-4-5 4M2 21l5-4m15 4-5-4M7 17V11a5 5 0 0 1 10 0v6M10 17v-4h4v4M7 17h10M3 21h18M5 19h14"/>'
 };
 export function effectIcon(id) {
-  if(id==='mod')return '∿';
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${drawings[id]||''}</svg>`;
 }
