@@ -66,5 +66,10 @@
 .support-button svg{fill:#ed78ad;stroke:#ed78ad}
 
 /* Compact slider-only parameters. */
-.parameter-controls{gap:18px 12px;padding-top:16px;padding-bottom:20px}.control-label{margin-bottom:9px}.control>select{margin:4px 0 0}.control .toggle{margin-top:4px}.control input[type=range]{width:90%;margin-bottom:10px}.rhythmic-division{grid-column:span 2}.rhythmic-division select{width:100%;min-height:36px;font-size:12px}
+.parameter-controls{gap:18px 12px;padding-top:16px;padding-bottom:20px}.control-label{margin-bottom:9px}.control>select{margin:4px 0 0}.control .toggle{margin-top:4px}.control input[type=range]{width:90%;margin-bottom:10px}.rhythmic-division{grid-column:span 2}
 @media(max-width:760px){.parameter-controls{gap:18px 8px}.control-label{font-size:12px}}
+
+.division-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.division-buttons button{min-width:0;min-height:40px;padding:7px 3px;border:1px solid var(--border);border-radius:5px;background:var(--field);color:var(--ink);font-size:12px;font-weight:600;white-space:nowrap}.division-buttons button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}.division-current{display:block;margin-top:7px;font-size:11px;color:var(--muted);line-height:1.5}
+@media(max-width:760px){.rhythmic-division{grid-column:1/-1}.division-buttons button{min-height:44px}}
+
+:root[data-theme=dark] .division-buttons button[aria-pressed=true]{color:#142314}

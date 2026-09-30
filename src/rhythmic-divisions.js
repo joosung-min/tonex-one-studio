@@ -7,3 +7,7 @@ export const rhythmicDivisions=[
  '1/2 — Half note','1/2 dotted — Dotted half','1/2 triplet — Half triplet',
  '1/1 — Whole note','1/1 dotted — Dotted whole','1/1 triplet — Whole triplet'
 ].map((label,value)=>({label,value}));
+
+export const divisionButtons=[
+ {label:'1/4',value:9},{label:'1/4D',value:10},{label:'1/8',value:6},{label:'1/8D',value:7},{label:'1/16',value:3}
+];

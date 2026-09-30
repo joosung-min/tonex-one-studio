@@ -1,4 +1,4 @@
-import {rhythmicDivisions} from './rhythmic-divisions.js';
+import {rhythmicDivisions,divisionButtons} from './rhythmic-divisions.js';
 import {TapTempo} from './tap-tempo.js';
 import {APP_VERSION} from './version.js';
 import {CabinetModes} from './cabinet-mode.js';
@@ -40,7 +40,7 @@ function indicesFor(g) {
   if(g.id==='amp')return [...g.indices,11,12,13,14,15,16,17];
   return g.indices;
 }
-function label(p) {if(p.id.endsWith('_TS'))return 'Rhythmic division';
+function label(p) {if(p.id.endsWith('_TS'))return 'Division';
   return labels[p.index]||p.id.replace(/^(REVERB_(SPRING\d|ROOM|PLATE)_|MODULATION_(CHORUS|TREMOLO)_|PHASER_|FLANGER_|ROTARY_|DELAY_(DIGITAL|TAPE)_)/,'').toLowerCase().replaceAll('_',' ').replace(/^\w/,s=>s.toUpperCase());}
 function unit(p) {if(/THRESHOLD|MAKE_UP|NOISE_GATE_DEPTH/.test(p.id))return 'dB';if(/FREQ/.test(p.id))return 'Hz';if(/RELEASE|ATTACK|PREDELAY|DELAY_.*_TIME/.test(p.id))return 'ms';if(/_RATE/.test(p.id))return 'Hz';if(p.max===100||p.min===-100&&p.max===100)return '%';return '';}
 function step(p) {return p.type==='range'?(p.max-p.min>100?1:.1):1;}
@@ -101,9 +101,14 @@ function renderControls() {
     const heading=g.id==='amp'&&index===11?`<div class="parameter-section-heading"><h3>EQ</h3><select data-param="10" aria-label="EQ position" ${disabled}><option value="0" ${params[10]!==1?'selected':''}>Pre amp</option><option value="1" ${params[10]===1?'selected':''}>Post amp</option></select></div>`:'';
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
     if(p.type==='select'){
-      const rhythmic=p.id.endsWith('_TS'),off=rhythmic&&params[index-1]!==1;
-      const options=rhythmic?rhythmicDivisions:(modelNames[index]||Array.from({length:p.max-p.min+1},(_,i)=>String(i+p.min))).map((label,i)=>({label,value:i+p.min}));
-      return `<label class="control ${rhythmic?'rhythmic-division':''}"><span class="control-label">${title}</span><select aria-label="${title}" data-param="${index}" ${enabled&&!off?'':'disabled'} ${rhythmic?'title="Enable Sync to use rhythmic division"':''}>${options.map(option=>`<option value="${option.value}" ${v===option.value?'selected':''}>${option.label}</option>`).join('')}</select></label>`;
+      if(p.id.endsWith('_TS')){
+        const disabledDivision=!enabled||params[index-1]!==1;
+        const listed=divisionButtons.some(option=>option.value===v);
+        const current=rhythmicDivisions.find(option=>option.value===v)?.label||'—';
+        return `<div class="control rhythmic-division"><span id="division-label-${index}" class="control-label">Division</span><div class="division-buttons" role="group" aria-labelledby="division-label-${index}">${divisionButtons.map(option=>`<button type="button" data-division="${index}" data-value="${option.value}" aria-pressed="${v===option.value}" title="${rhythmicDivisions[option.value].label}" ${disabledDivision?'disabled':''}>${option.label}</button>`).join('')}</div>${!listed&&Number.isFinite(v)?`<span class="division-current">Current: ${current}</span>`:''}</div>`;
+      }
+      const options=(modelNames[index]||Array.from({length:p.max-p.min+1},(_,i)=>String(i+p.min))).map((label,i)=>({label,value:i+p.min}));
+      return `<label class="control"><span class="control-label">${title}</span><select aria-label="${title}" data-param="${index}" ${disabled}>${options.map(option=>`<option value="${option.value}" ${v===option.value?'selected':''}>${option.label}</option>`).join('')}</select></label>`;
     }
     return `${heading}<div class="control"><label class="control-label" for="range-${index}">${title}</label><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
   }).join('');
@@ -115,6 +120,7 @@ function renderControls() {
   }
   if($('cab-toggle'))$('cab-toggle').onclick=()=>toggleEffect(g);
   document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.toggle),params[b.dataset.toggle]===1?0:1,true));
+  document.querySelectorAll('[data-division]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.division),Number(b.dataset.value),true));
   document.querySelectorAll('select[data-param]').forEach(b=>b.onchange=()=>applyParameter(Number(b.dataset.param),Number(b.value),true));
   document.querySelectorAll('input[data-param]').forEach(b=>{
     b.oninput=()=>{if(b.value!==''&&Number.isFinite(Number(b.value)))applyParameter(Number(b.dataset.param),Number(b.value));};

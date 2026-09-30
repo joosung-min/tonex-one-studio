@@ -12,7 +12,7 @@ A desktop and mobile web editor for the original IK Multimedia ToneX One. Indepe
 - Preset assignment/loading into A/B (Dual) or C (Stomp), slot switching, and global bypass. State is refreshed before mutation and read back to confirm it.
 - Live amp, EQ, gate, compressor, cabinet, modulation, delay and reverb controls, including per-model parameters and pre/post placement. Controls require a complete supported 109-value parameter block.
 - Global BPM card with tap tempo (averages the latest five beat intervals) and numeric tempo controls (40–240 BPM), with coalesced writes and state readback confirmation. Selected preset borders and active slot buttons follow pedal preset colors; Gate, Comp, Mod, Delay and Reverb retain distinct colored borders when Off and matching fills when On in both themes.
-- Compact slider and numeric parameter controls without decorative knobs. Mod/Delay rhythmic divisions use musical labels for all 18 options; their selectors are disabled while Sync is off.
+- Compact slider and numeric parameter controls without decorative knobs. Mod/Delay Division controls offer five musical shortcut buttons, disabled while Sync is off; other stored divisions are shown and preserved until a shortcut is selected.
 - Parameter updates coalesced at 80 ms, followed by preset readback; physical parameter and state notifications are observed.
 - Mobile preset/editor navigation, search, numeric inputs, explicit demo mode, settings JSON export.
 - PWA manifest and offline app-shell cache; no backend or build dependencies.
