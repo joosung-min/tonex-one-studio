@@ -1,5 +1,6 @@
 import {createPedalConnection} from './serial.js';
 import {parameters} from './parameters.js';
+import {bindEffectInteractions} from './effect-interactions.js';
 const $=id=>document.getElementById(id), usb=createPedalConnection();
 const groups=[
   {id:'gate',name:'Gate',symbol:'⊓',enable:1,position:0,indices:[2,3,4],category:'NOISE GATE'},
@@ -43,13 +44,35 @@ function renderPresets() {
   else $('preset-list').innerHTML=filtered.map(p=>`<button class="preset-row ${p.id===selected?'selected':''}" data-preset="${p.id}" aria-pressed="${p.id===selected}" ${busy||!p.read?'disabled':''}><span class="preset-index">${String(p.id+1).padStart(2,'0')}</span><i class="preset-dot" style="background:${p.color||'#93a786'}"></i><span>${escape(p.name)}</span><span class="playing">${p.id===active()?'●':'↗'}</span></button>`).join('');
   document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.preset);params=presets[selected].parameters||[];render();changeView('editor');});
 }
+const chainOrder=['gate','amp','cab','eq','comp','mod','delay','reverb'];
+const quickToggle=new Set(['gate','comp','mod','delay','reverb']);
 function renderChain() {
-  const list=groups.slice().sort((a,b)=>{
-    const rank=g=>g.id==='amp'?1:g.id==='cab'?2:g.position===undefined?1:((params[g.position]??(g.id==='delay'||g.id==='reverb'||g.id==='mod'?1:0))===1?3:0);
-    return rank(a)-rank(b);
+  if(!$('chain').children.length) {
+    $('chain').innerHTML=chainOrder.map(id=>{
+      const g=groups.find(group=>group.id===id);
+      return `<button class="effect-block" data-effect="${g.id}" aria-pressed="false"><span class="effect-symbol" aria-hidden="true">${g.symbol}</span><span class="effect-label">${g.name}</span><span class="effect-state"></span><i class="effect-led" aria-hidden="true"></i></button>`;
+    }).join('');
+    document.querySelectorAll('[data-effect]').forEach(button=>{
+      const g=groups.find(group=>group.id===button.dataset.effect);
+      bindEffectInteractions(button,{
+        select:()=>{effect=g.id;renderChain();renderControls();},
+        toggle:()=>{
+          if(!quickToggle.has(g.id))return;
+          if(!editable()){notify('Load this preset and connect your pedal before switching effects.');return;}
+          effect=g.id;applyParameter(g.enable,params[g.enable]===1?0:1,true);
+        }
+      });
+    });
+  }
+  document.querySelectorAll('[data-effect]').forEach(button=>{
+    const g=groups.find(group=>group.id===button.dataset.effect);
+    const known=params.length===109;
+    const on=known&&(g.enable===undefined||params[g.enable]===1)&&!(g.id==='cab'&&params[24]===2);
+    button.classList.toggle('selected',effect===g.id);button.classList.toggle('on',on);
+    button.setAttribute('aria-pressed',String(effect===g.id));
+    button.querySelector('.effect-state').textContent=!known?'—':on?'On':'Bypassed';
+    button.title=quickToggle.has(g.id)?`${g.name}: select to edit; double-click or double-tap to toggle${!editable()?' after loading the preset':''}`:`${g.name}: select to edit`;
   });
-  $('chain').innerHTML=list.map(g=>`<button class="effect-block ${effect===g.id?'selected':''} ${(g.enable===undefined||params[g.enable]===1)&&!(g.id==='cab'&&params[24]===2)?'on':''}" data-effect="${g.id}" aria-pressed="${effect===g.id}"><span class="effect-symbol" aria-hidden="true">${g.symbol}</span><span class="effect-label">${g.name}</span><i class="effect-led"></i></button>`).join('');
-  document.querySelectorAll('[data-effect]').forEach(b=>b.onclick=()=>{effect=b.dataset.effect;renderChain();renderControls();});
 }
 function renderControls() {
   const g=groups.find(g=>g.id===effect), enabled=editable(),disabled=enabled?'':'disabled';
@@ -112,7 +135,7 @@ async function confirmParameters() {
   if(!usb.connected||busy||scanning||selected!==active())return;
   const epoch=session,id=active();
   try {const detail=await usb.getPreset(id);if(epoch!==session||active()!==id||selected!==id||pendingWrites.size)return;
-    storePreset(id,detail);params=detail.parameters;renderControls();$('edit-status').textContent='Read back from pedal · Not saved';
+    storePreset(id,detail);params=detail.parameters;renderChain();renderControls();$('edit-status').textContent='Read back from pedal · Not saved';
   }catch(e){if(epoch===session){usb.log('error',e.message);$('edit-status').textContent='Sent · Readback unavailable';}}
 }
 function applyParameter(index,value,rebuild=false) {
@@ -210,3 +233,18 @@ $('support-info').textContent=!isSecureContext?'This address is not secure. Use 
 $('welcome-copy').textContent=usb.transport==='webserial'?'Connect your powered ToneX One to your Mac with a USB data cable. Open this page in Google Chrome, then select the pedal’s serial port.':'Connect your powered ToneX One with a USB OTG data cable, then allow USB access in Chrome on Android.';
 changeView('editor');render();
 if('serviceWorker' in navigator&&isSecureContext)navigator.serviceWorker.register(new URL('../sw.js',import.meta.url)).catch(()=>{});
+
+function renderTheme() {
+  const dark=document.documentElement.dataset.theme==='dark';
+  $('theme-toggle').setAttribute('aria-pressed',String(dark));
+  $('theme-toggle').innerHTML=dark?'☀ <span>Light</span>':'☾ <span>Dark</span>';
+  $('theme-toggle').title=dark?'Switch to light mode':'Switch to dark mode';
+  document.querySelector('meta[name="theme-color"]').content=dark?'#141b18':'#171d19';
+}
+$('theme-toggle').onclick=()=>{
+  const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  document.documentElement.dataset.theme=theme;
+  try {localStorage.setItem('tonex-theme',theme);}catch {}
+  renderTheme();
+};
+renderTheme();

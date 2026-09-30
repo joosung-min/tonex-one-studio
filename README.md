@@ -4,6 +4,7 @@ A desktop and mobile web editor for the original IK Multimedia ToneX One. Indepe
 
 ## Implemented
 
+- Compact editor with a fixed four-column effect grid, double-click/double-tap effect toggles, and saved light/dark theme.
 - Mac/desktop Chrome Web Serial transport over USB, with 115200/8N1, DTR/RTS, authorized-port reconnection and stream cleanup.
 - Android WebUSB CDC-ACM transport (VID `1963`, PID `00d1`), 115200/8N1, DTR/RTS setup.
 - Wake/full-state handshake (also connects when an already-awake pedal skips its wake acknowledgement), continuous HDLC receive loop, CRC-16/X-25, bounded frame sizes, timeout handling and a command queue.
@@ -73,7 +74,7 @@ The workflow checks the code, runs the tests, and publishes only `dist/`. `npm r
 
 ## Verification status and limitations
 
-Automated protocol checks use a real state fixture and command/notification vectors published by TUSB, plus streaming, corruption and malformed-layout checks. Browser interactions have been checked in demo mode. A read-only native serial check on the connected Mac pedal successfully decoded its state and all 20 preset summaries, each containing 109 parameter values. It also confirmed that repeated wake requests and the legacy short hello may receive no reply. A regression test covers the captured state and silent-wake reconnect. **The complete browser connection, live writes, and Android USB path still require hardware validation.** Serial transport tests use simulated streams; the native check does not substitute for a Chrome permission/stream test. A working native Android implementation establishes a protocol reference, not a guarantee of browser USB access.
+Automated protocol checks use a real state fixture and command/notification vectors published by TUSB, plus streaming, corruption and malformed-layout checks. Browser interactions have been checked in demo mode. A read-only native serial check on the connected Mac pedal successfully decoded its state and all 20 preset summaries, each containing 109 parameter values. It also confirmed that repeated wake requests and the legacy short hello may receive no reply. A regression test covers the captured state and silent-wake reconnect. Mac Chrome and Android Chrome USB connections have been confirmed by the user. New UI interactions are checked in demo mode; live effect toggles still need a hardware check. Serial transport tests use simulated streams; the native check does not substitute for a Chrome permission/stream test. A working native Android implementation establishes a protocol reference, not a guarantee of browser USB access.
 
 - The app supports the observed FX-era state layout. It refuses unknown headers/extensions rather than guessing state write offsets. Firmware variants may need additional parsers.
 - Live edits do not implement a permanent save command. Do not assume edits survive a preset switch or power cycle.
