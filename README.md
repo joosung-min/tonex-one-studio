@@ -99,3 +99,7 @@ Adapted code and table retain attribution in source. See `THIRD_PARTY_LICENSES.t
 ## Source visibility
 
 The repository remains public and MIT-licensed. Minifying deployment files does not make browser code secret or change its license. To keep the source repository private while continuing to serve a public app, GitHub Pages requires an eligible paid plan, or the deployment must move to another hosting setup.
+
+## Public visit counter
+
+The published GitHub Pages app displays a CounterAPI total in the footer. It attempts one increment per tab session using sessionStorage; reloads only read the total. A new tab/session can count again, and restricted browser storage can cause reloads to count again. This measures sessions, not unique people; public counters can also receive automated requests. Local development and offline starts do not count. CounterAPI receives the visitor's network request (including their IP address); no pedal, preset, or device data is sent. No API key is embedded. Updates can be buffered, so totals may lag. Requests time out after eight seconds and the label stays hidden on failure, without affecting USB editing.

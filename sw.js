@@ -1,8 +1,8 @@
 // Scope cache names and URLs to this app so multiple Pages projects can coexist.
 const BASE=new URL('./',self.location.href);
 const PREFIX=`tonex-studio:${BASE.pathname}:`;
-const CACHE=PREFIX+'v16';
-const SHELL=['./','index.html','src/app.js','src/version.js','src/cabinet-mode.js','src/tap-tempo.js','src/rhythmic-divisions.js','src/effect-icons.js','src/theme.js','src/effect-interactions.js','src/usb.js','src/serial.js','src/protocol.js','src/parameters.js','src/style.css','manifest.webmanifest','public/icon.svg'].map(path=>new URL(path,BASE).href);
+const CACHE=PREFIX+'v17';
+const SHELL=['./','index.html','src/app.js','src/version.js','src/visit-counter.js','src/cabinet-mode.js','src/tap-tempo.js','src/rhythmic-divisions.js','src/effect-icons.js','src/theme.js','src/effect-interactions.js','src/usb.js','src/serial.js','src/protocol.js','src/parameters.js','src/style.css','manifest.webmanifest','public/icon.svg'].map(path=>new URL(path,BASE).href);
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(PREFIX)&&k!==CACHE).map(k=>caches.delete(k))))));
 self.addEventListener('fetch',e=>{

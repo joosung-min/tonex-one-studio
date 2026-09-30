@@ -73,3 +73,5 @@
 @media(max-width:760px){.rhythmic-division{grid-column:1/-1}.division-buttons button{min-height:44px}}
 
 :root[data-theme=dark] .division-buttons button[aria-pressed=true]{color:#142314}
+
+.editor-footer{flex-wrap:wrap;gap:8px 16px}.visit-counter{white-space:nowrap;font-variant-numeric:tabular-nums}
