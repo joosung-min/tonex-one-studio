@@ -4,15 +4,16 @@ A desktop and mobile web editor for the original IK Multimedia ToneX One. Indepe
 
 ## Implemented
 
-- Compact editor with a fixed four-column effect grid, double-click/double-tap effect toggles, and saved light/dark theme. Slot buttons switch the pedal and display its assigned preset. A load badge loads a browsed preset into the active slot and selects the Amp editor; all effect cards except EQ support double-tap toggling; firmware sits beneath connection status and the last refresh time above the library.
+- Compact editor with a fixed four-column effect grid, double-click/double-tap effect toggles, and saved light/dark theme. Slot buttons switch the pedal and display its assigned preset. A load badge loads a browsed preset into the active slot and selects the Amp editor; EQ controls live inside the Amp editor and remain editable with Amp bypassed; all effect cards except Global BPM support double-tap toggling; firmware sits beneath connection status and the last refresh time above the library.
 - Mac/desktop Chrome Web Serial transport over USB, with 115200/8N1, DTR/RTS, authorized-port reconnection and stream cleanup.
 - Android WebUSB CDC-ACM transport (VID `1963`, PID `00d1`), 115200/8N1, DTR/RTS setup.
 - Wake/full-state handshake (also connects when an already-awake pedal skips its wake acknowledgement), continuous HDLC receive loop, CRC-16/X-25, bounded frame sizes, timeout handling and a command queue.
 - Sequential reading of all 20 preset names and FX-era parameter summaries without loading those presets.
 - Preset assignment/loading into A/B (Dual) or C (Stomp), slot switching, and global bypass. State is refreshed before mutation and read back to confirm it.
 - Live amp, EQ, gate, compressor, cabinet, modulation, delay and reverb controls, including per-model parameters and pre/post placement. Controls require a complete supported 109-value parameter block.
+- Global BPM card and numeric tempo controls (40–240 BPM), with state readback confirmation. Selected preset borders and active slot buttons follow pedal preset colors; enabled Gate, Comp, Mod, Delay and Reverb cards use distinct colors in both themes.
 - Parameter updates coalesced at 80 ms, followed by preset readback; physical parameter and state notifications are observed.
-- Mobile preset/editor navigation, search, numeric inputs, explicit demo mode, settings JSON export and diagnostic JSON export.
+- Mobile preset/editor navigation, search, numeric inputs, explicit demo mode, settings JSON export.
 - PWA manifest and offline app-shell cache; no backend or build dependencies.
 
 ## Run locally
@@ -32,16 +33,16 @@ npm test
 
 The Codex-provided Node executable can also run `server.js` and `--test tests/*.test.js` directly if Node is absent from your PATH.
 
-## Use on Mac Chrome over USB
+## Use on Desktop or Android web browser over USB
 
 1. Connect the powered ToneX One to your Mac with a USB **data** cable.
 2. Close TONEX Editor/Librarian and any other app using the pedal's serial port.
 3. Open **http://localhost:5173** in **Google Chrome** (or use an HTTPS-hosted copy). Plain localhost works for Web Serial; a LAN IP over HTTP does not.
 4. Click **Connect pedal** and choose the ToneX One USB serial port in Chrome's picker. Accept macOS accessory access if prompted.
 5. The app reads all 20 preset summaries. Use the same preset, slot and effect controls as on Android.
-6. Disconnect from the app before opening the official editor. Use **Reconnect authorized pedal** after reconnecting the cable.
+6. Disconnect from the app before opening the official editor. Use **Connect pedal** after reconnecting the cable.
 
-Desktop selects Web Serial automatically. This uses macOS's USB serial driver rather than trying to claim its CDC interfaces with WebUSB. Android continues to select WebUSB, including Android versions that expose Web Serial for Bluetooth only. Safari is not supported by this connection path. If no port appears, check power/data cable and macOS accessory access; if opening fails, close other editors. Export diagnostics if the handshake fails.
+Desktop selects Web Serial automatically. This uses macOS's USB serial driver rather than trying to claim its CDC interfaces with WebUSB. Android continues to select WebUSB, including Android versions that expose Web Serial for Bluetooth only. Safari is not supported by this connection path. If no port appears, check power/data cable and macOS accessory access; if opening fails, close other editors. Check power, the data cable and other pedal editors if the handshake fails.
 
 ## Test on an Android phone
 

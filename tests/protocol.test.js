@@ -23,3 +23,12 @@ test('preset load preserves all state bytes except deliberate slot/mode/bypass/m
 });
 test('unknown or truncated state layouts fail closed',()=>{assert.throws(()=>parseState(stateFixture.slice(0,-1)));assert.throws(()=>parseState(bytes(stateFixture,0)));const p=stateFixture.slice();p[22]=0;assert.throws(()=>parseState(p));});
 test('invalid command inputs cannot produce USB writes',()=>{assert.throws(()=>requestPreset(20));assert.throws(()=>setParameter(21,NaN));assert.throws(()=>mutateState(parseState(stateFixture),{preset:20,slot:0}));});
+
+test('tempo mutation preserves presets, colors and other global settings',()=>{
+ const state=parseState(stateFixture),tempo=137.5,command=mutateState(state,{tempo}),body=command.slice(11),original=state.raw.slice(state.bodyStart);
+ const offsets=new Set([state.monitorOffset-state.bodyStart,...Array.from({length:4},(_,i)=>state.tempoOffset-state.bodyStart+i)]);
+ for(let i=0;i<body.length;i++)if(!offsets.has(i))assert.equal(body[i],original[i],`byte ${i}`);
+ const result=parseState(bytes(state.raw.slice(0,state.bodyStart),body));assert.equal(result.tempo,tempo);assert.deepEqual(result.slots,state.slots);assert.deepEqual(state.raw,stateFixture);
+ for(const invalid of [NaN,Infinity,39.9,240.1])assert.throws(()=>mutateState(state,{tempo:invalid}));
+ for(const boundary of [40,240])assert.equal(parseState(bytes(state.raw.slice(0,state.bodyStart),mutateState(state,{tempo:boundary}).slice(11))).tempo,boundary);
+});

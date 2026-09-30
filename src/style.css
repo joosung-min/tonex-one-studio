@@ -40,3 +40,20 @@
 @media(max-width:380px){.brand-block .brand{font-size:17px}.version-badge{font-size:8px;padding:3px 4px}.brand-block{gap:5px}.theme-toggle{font-size:10px;padding:6px}.load-row .slot-buttons{flex-basis:auto}}
 
 .preset-meta:has(#load[hidden]):has(#preset-status[hidden]){display:none}
+
+/* Preset identity and effect colors. */
+.tone-card{border:3px solid var(--preset-color,var(--border));box-shadow:0 0 0 1px var(--preset-color,var(--border))}
+:root .slot-buttons button.active{background:var(--slot-color);border-color:var(--slot-color);color:var(--slot-ink)}
+.slot-buttons button.active small{color:inherit}
+.effect-block[data-effect=gate]{--effect-color:#7843a0}.effect-block[data-effect=comp]{--effect-color:#b52f70}.effect-block[data-effect=mod]{--effect-color:#947000}.effect-block[data-effect=delay]{--effect-color:#287342}.effect-block[data-effect=reverb]{--effect-color:#2869ad}
+.effect-block.on[data-effect=gate],.effect-block.on[data-effect=comp],.effect-block.on[data-effect=mod],.effect-block.on[data-effect=delay],.effect-block.on[data-effect=reverb]{background:var(--effect-color);border-color:var(--effect-color);color:#fff}
+.effect-block.on[data-effect=gate] .effect-state,.effect-block.on[data-effect=comp] .effect-state,.effect-block.on[data-effect=mod] .effect-state,.effect-block.on[data-effect=delay] .effect-state,.effect-block.on[data-effect=reverb] .effect-state{color:#fff}
+.effect-block.selected{outline:2px solid var(--ink);outline-offset:3px}
+.effect-block[data-effect=tempo] .effect-label{font-size:12px}.effect-block[data-effect=tempo] .effect-state{font-family:var(--mono);font-weight:700}.effect-block[data-effect=tempo] .effect-led{display:none}
+.parameter-section-heading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:16px;margin-top:2px;gap:12px}
+.parameter-section-heading h3{margin:0;font-size:19px}.parameter-section-heading select{font-size:12px;padding:8px;border:1px solid var(--border);border-radius:5px;background:var(--field);color:var(--ink)}
+.tempo-control{grid-column:1/-1;text-align:center;padding:14px}.tempo-control strong{font-size:36px}.tempo-control strong small{font-size:15px;color:var(--muted)}
+
+.tempo-input{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 18px}.tempo-input input{width:130px;font-size:36px;text-align:center;background:var(--field);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:8px}.tempo-input span{font-size:15px;color:var(--muted)}
+
+:root[data-theme=dark] .slot-buttons button.active{color:var(--slot-ink)}

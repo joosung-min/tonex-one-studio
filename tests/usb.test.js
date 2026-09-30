@@ -19,3 +19,10 @@ test('request queue serializes operations and recovers after rejection',async()=
 });
 test('pending request is rejected and cleared on timeout',async()=>{const usb=new ToneXUSB();usb.send=async()=>{};await assert.rejects(usb.exchange(bytes(1),0x0306,10),/No response/);assert.equal(usb.pending,null);});
 test('closing rejects pending exchange and disables later parameter writes',async()=>{const usb=new ToneXUSB();usb.send=async()=>{};const pending=usb.exchange(bytes(1),0x0306);await usb.close('Test disconnect');await assert.rejects(pending,/Test disconnect/);await assert.rejects(usb.writeParameter(20,2),/not ready/);});
+
+test('tempo writes are read back and unconfirmed values are rejected',async()=>{
+ const device=new Device(),usb=new ToneXUSB();await usb.open(device);
+ const initial=await usb.getState();const state=await usb.changeState({tempo:137.5});assert.equal(state.tempo,137.5);assert.deepEqual(state.slots,initial.slots);
+ const send=usb.send.bind(usb);usb.send=payload=>payload[3]===6&&payload[4]===3?Promise.resolve():send(payload);
+ await assert.rejects(usb.changeState({tempo:160}),/did not confirm/);assert.equal(usb.state.tempo,137.5);await usb.close();
+});

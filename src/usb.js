@@ -128,7 +128,7 @@ export class ToneXUSB extends EventTarget {
       await this.send(mutateState(this.state,change)); await delay(120);
       await this.exchange(requestState(),0x0306);
       const s=this.state;
-      if((change.slot!==undefined&&s.activeSlot!==change.slot)||(change.preset!==undefined&&s.slots[change.slot]!==change.preset)||(change.bypass!==undefined&&s.bypass!==change.bypass)||(change.cabBypass!==undefined&&s.cabBypass!==change.cabBypass))throw Error('Pedal did not confirm the requested state. Refresh before retrying.');
+      if((change.slot!==undefined&&s.activeSlot!==change.slot)||(change.preset!==undefined&&s.slots[change.slot]!==change.preset)||(change.bypass!==undefined&&s.bypass!==change.bypass)||(change.cabBypass!==undefined&&s.cabBypass!==change.cabBypass)||(change.tempo!==undefined&&Math.abs(s.tempo-change.tempo)>.01))throw Error('Pedal did not confirm the requested state. Refresh before retrying.');
       return s;
     });
   }

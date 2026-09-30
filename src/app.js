@@ -10,7 +10,7 @@ const groups=[
   {id:'gate',name:'Gate',symbol:'⊓',enable:1,position:0,indices:[2,3,4],category:'NOISE GATE'},
   {id:'comp',name:'Comp',symbol:'≋',enable:6,position:5,indices:[7,8,9],category:'DYNAMICS'},
   {id:'amp',name:'Amp',symbol:'▥',enable:18,indices:[20,21,34,35],category:'TONE MODEL'},
-  {id:'eq',name:'EQ',symbol:'☷',position:10,indices:[11,12,13,14,15,16,17],category:'EQUALIZER'},
+  {id:'tempo',name:'Global BPM',indices:[]},
   {id:'cab',name:'Cab',symbol:'▦',indices:[24,25,26,27,28,29,30,31,32,33],category:'CABINET'},
   {id:'mod',name:'Mod',symbol:'∿',enable:64,position:63,model:65,category:'MODULATION'},
   {id:'delay',name:'Delay',symbol:'⋮',enable:95,position:94,model:96,category:'TIME & SPACE'},
@@ -18,7 +18,7 @@ const groups=[
 ];
 const modelNames={24:['Tone Model','VIR','Off'],25:Array.from({length:11},(_,i)=>`Cabinet ${i+1}`),27:['Mic 1','Mic 2','Mic 3'],30:['Mic 1','Mic 2','Mic 3'],38:['Spring 1','Spring 2','Spring 3','Spring 4','Room','Plate'],65:['Chorus','Tremolo','Phaser','Flanger','Rotary'],96:['Digital','Tape']};
 const labels={2:'Threshold',3:'Release',4:'Depth',7:'Threshold',8:'Make-up gain',9:'Attack',11:'Bass',12:'Bass frequency',13:'Mid',14:'Mid Q',15:'Mid frequency',16:'Treble',17:'Treble frequency',20:'Gain',21:'Volume',22:'Mix',24:'Cabinet mode',25:'VIR cabinet',26:'Resonance',27:'Microphone 1',28:'Mic 1 · X',29:'Mic 1 · Z',30:'Microphone 2',31:'Mic 2 · X',32:'Mic 2 · Z',33:'Mic blend',34:'Presence',35:'Depth'};
-const ampLabels={amp:'Amplifier',eq:'Equalizer',gate:'Noise gate',comp:'Compressor',cab:'Cabinet',mod:'Modulation',delay:'Delay',reverb:'Reverb'};
+const ampLabels={amp:'Amplifier',tempo:'Global BPM',gate:'Noise gate',comp:'Compressor',cab:'Cabinet',mod:'Modulation',delay:'Delay',reverb:'Reverb'};
 let demo=false,busy=false,scanning=false,pedalState=null,presets=[],selected=null,effect='amp',params=[],activePreset=null;
 let confirmationTimer, pendingWrites=new Map(), writeTimer, session=0;
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,6 +33,7 @@ function indicesFor(g) {
   if(g.id==='delay') {const base=97+Math.round(params[96]??0)*6;return Array.from({length:6},(_,i)=>base+i);}
   if(g.id==='mod') {const bases=[66,71,77,82,88],counts=[5,6,5,6,6],m=Math.round(params[65]??0);return Array.from({length:counts[m]||5},(_,i)=>(bases[m]||66)+i);}
   if(g.id==='cab')return params[24]===1?g.indices:[24];
+  if(g.id==='amp')return [...g.indices,11,12,13,14,15,16,17];
   return g.indices;
 }
 function label(p) {if(p.id.endsWith('_TS'))return 'Rhythmic division';
@@ -47,7 +48,7 @@ function renderPresets() {
   else $('preset-list').innerHTML=filtered.map(p=>`<button class="preset-row ${p.id===selected?'selected':''}" data-preset="${p.id}" aria-pressed="${p.id===selected}" ${busy||!p.read?'disabled':''}><span class="preset-index">${String(p.id+1).padStart(2,'0')}</span><i class="preset-dot" style="background:${p.color||'#93a786'}"></i><span>${escape(p.name)}</span><span class="playing">${p.id===active()?'●':'↗'}</span></button>`).join('');
   document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.preset);params=presets[selected].parameters||[];render();changeView('editor');});
 }
-const chainOrder=['gate','amp','cab','eq','comp','mod','delay','reverb'];
+const chainOrder=['gate','amp','cab','tempo','comp','mod','delay','reverb'];
 const quickToggle=new Set(['gate','amp','cab','comp','mod','delay','reverb']);
 function renderChain() {
   if(!$('chain').children.length) {
@@ -65,6 +66,10 @@ function renderChain() {
   }
   document.querySelectorAll('[data-effect]').forEach(button=>{
     const g=groups.find(group=>group.id===button.dataset.effect);
+    if(g.id==='tempo'){
+      button.classList.toggle('selected',effect==='tempo');button.classList.remove('on');button.setAttribute('aria-pressed',String(effect==='tempo'));
+      button.querySelector('.effect-state').textContent=Number.isFinite(pedalState?.tempo)?`${Number(pedalState.tempo.toFixed(1))} BPM`:'— BPM';button.title='Global tempo';return;
+    }
     const known=params.length===109;
     const on=known&&(g.enable===undefined||params[g.enable]===1)&&!(g.id==='cab'&&params[24]===2);
     button.classList.toggle('selected',effect===g.id);button.classList.toggle('on',on);
@@ -88,10 +93,17 @@ function renderControls() {
   if(g.id==='cab')$('effect-actions').innerHTML+=`<button class="toggle ${params[24]===2?'off':''}" id="cab-toggle" aria-pressed="${params[24]!==2}" ${disabled}>${params[24]===2?'○ Off':'● On'}</button>`;
   $('parameter-controls').innerHTML=indicesFor(g).map(index=>{
     const p=parameters[index],v=params[index],title=label(p);
+    const heading=g.id==='amp'&&index===11?`<div class="parameter-section-heading"><h3>EQ</h3><select data-param="10" aria-label="EQ position" ${disabled}><option value="0" ${params[10]!==1?'selected':''}>Pre amp</option><option value="1" ${params[10]===1?'selected':''}>Post amp</option></select></div>`:'';
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
     if(p.type==='select')return `<label class="control"><span class="control-label">${title}</span><select data-param="${index}" ${disabled}>${(modelNames[index]||Array.from({length:p.max-p.min+1},(_,i)=>String(i+p.min))).map((n,i)=>`<option value="${i+p.min}" ${v===i+p.min?'selected':''}>${n}</option>`).join('')}</select></label>`;
-    return `<div class="control"><label class="control-label" for="range-${index}">${title}</label><div id="knob-${index}" class="knob" style="--angle:${Number.isFinite(v)?270*(v-p.min)/(p.max-p.min):0}deg" aria-hidden="true"></div><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
+    return `${heading}<div class="control"><label class="control-label" for="range-${index}">${title}</label><div id="knob-${index}" class="knob" style="--angle:${Number.isFinite(v)?270*(v-p.min)/(p.max-p.min):0}deg" aria-hidden="true"></div><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
   }).join('');
+  if(effect==='tempo'){
+    $('parameter-controls').innerHTML=`<div class="tempo-control"><label class="control-label" for="tempo-value">Global tempo</label><div class="tempo-input"><input id="tempo-value" aria-label="Global BPM" type="number" min="40" max="240" step="0.1" value="${Number.isFinite(pedalState?.tempo)?Number(pedalState.tempo.toFixed(1)):''}" placeholder="—" ${ready()?'':'disabled'}><span>BPM</span></div><button id="apply-tempo" class="secondary" ${ready()?'':'disabled'}>Apply tempo</button></div>`;
+    $('apply-tempo').onclick=()=>void applyTempo();
+    $('tempo-value').onkeydown=e=>{if(e.key==='Enter')void applyTempo();};
+    $('parameter-note').textContent=demo?'Demo tempo is simulated.':'Global tempo applies across presets. Effects follow it when their tempo sync is enabled.';return;
+  }
   if($('cab-toggle'))$('cab-toggle').onclick=()=>toggleEffect(g);
   document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.toggle),params[b.dataset.toggle]===1?0:1,true));
   document.querySelectorAll('select[data-param]').forEach(b=>b.onchange=()=>applyParameter(Number(b.dataset.param),Number(b.value),true));
@@ -112,6 +124,7 @@ function render() {
   const p=presets.find(p=>p.id===selected),online=demo||usb.connected;
   $('preset-number').textContent=p?`PRESET ${String(p.id+1).padStart(2,'0')} / 20`:'NO PRESET SELECTED';
   $('preset-name').textContent=p?.name||'Connect your pedal';
+  document.querySelector('.tone-card').style.setProperty('--preset-color',p?.color||'var(--border)');
   const isActive=!!p&&selected===active();
   $('preset-status').hidden=!isActive;
   $('load').hidden=!p||isActive;
@@ -123,6 +136,12 @@ function render() {
   $('load').disabled=!ready()||!p?.read;
   document.querySelectorAll('[data-slot]').forEach(b=>{
     const current=Number(b.dataset.slot)===pedalState?.activeSlot;
+    const slotPreset=presets[pedalState?.slots[Number(b.dataset.slot)]];
+    const color=slotPreset?.color||'#93a786';b.style.setProperty('--slot-color',color);
+    const rgb=color.match(/[\d.]+/g),hex=color.startsWith('#')?color.slice(1):null;
+    const components=hex&&hex.length===6?[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)):rgb?.slice(0,3).map(Number)||[147,167,134];
+    const linear=components.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
+    b.style.setProperty('--slot-ink',.2126*linear[0]+.7152*linear[1]+.0722*linear[2]>.179?'#111811':'#fff');
     b.classList.toggle('active',current);b.setAttribute('aria-pressed',String(current));b.disabled=!ready();
   });
   $('welcome').hidden=online;$('demo-banner').hidden=!demo;
@@ -150,6 +169,20 @@ function applyParameter(index,value,rebuild=false) {
   if(!Number.isFinite(value))return;if(index===24)cabinetModes.remember(selected,value);params[index]=value;presets[selected].parameters=params.slice();
   if(!demo){pendingWrites.set(index,value);clearTimeout(writeTimer);writeTimer=setTimeout(flushWrites,80);}
   updateControl(index);if(rebuild){renderChain();renderControls();}
+}
+async function applyTempo() {
+  if(!ready())return;
+  const tempo=Number($('tempo-value').value);
+  if(!Number.isFinite(tempo)||tempo<40||tempo>240){notify('Enter a tempo between 40 and 240 BPM.');return;}
+  if(pendingWrites.size)await flushWrites();
+  if(!ready())return;
+  clearTimeout(confirmationTimer);busy=true;render();const epoch=session;
+  try {
+    if(demo)pedalState.tempo=tempo;
+    else {const state=await usb.changeState({tempo});if(epoch!==session)return;pedalState=state;}
+    if(epoch===session)$('notice').hidden=true;
+  }catch(e){if(epoch===session)notify(`Tempo update failed: ${e.message}`);}
+  finally {if(epoch===session){busy=false;render();}}
 }
 function storePreset(id,detail) {
   const existing=presets[id];if(!existing)return;
@@ -196,11 +229,12 @@ function startDemo() {
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];
   const colors=['#86a872','#c6a270','#839fac','#b88f81'];
   presets=names.map((name,id)=>{const values=parameters.map(p=>p.default);values[20]=3.4+(id%6)*.7;values[21]=5.2;values[11]=5.4;values[13]=4.8;values[16]=6.2;values[95]=1;values[99]=320;values[102]=18;values[42]=22;return {id,name,color:colors[id%4],parameters:values,read:true};});
-  pedalState={slots:[0,1,2],activeSlot:0,stomp:false,bypass:false};selected=0;activePreset=0;params=presets[0].parameters.slice();updateTimestamp();$('notice').hidden=true;render();
+  pedalState={slots:[0,1,2],activeSlot:0,stomp:false,bypass:false,tempo:120};selected=0;activePreset=0;params=presets[0].parameters.slice();updateTimestamp();$('notice').hidden=true;render();
 }
 usb.addEventListener('state',e=>{
   const previous=active();pedalState=e.detail;
   if(!pedalState){params=[];render();return;}
+  if(pedalState.colors)presets.forEach(p=>{if(pedalState.colors[p.id])p.color=`rgb(${pedalState.colors[p.id].join(',')})`;});
   if(previous!==active()) {
     cancelWrites();activePreset=active();
     if(usb.connected&&!busy&&!scanning){selected=active();params=[];render();void usb.getPreset(selected).then(detail=>{if(!busy&&selected===active()){storePreset(selected,detail);params=detail.parameters;render();}}).catch(e=>notify(e.message));}
@@ -209,7 +243,7 @@ usb.addEventListener('state',e=>{
 usb.addEventListener('parameter',e=>{
   if(busy||scanning||selected!==active())return;const {index,value}=e.detail;if(index>=109||!Number.isFinite(value)||pendingWrites.has(index))return;
   params[index]=value;if(index===24)cabinetModes.remember(selected,value);if(presets[selected])presets[selected].parameters=params.slice();updateControl(index);
-  if(groups.some(g=>g.model===index||g.enable===index||g.position===index)||index===24){renderChain();renderControls();}
+  if(groups.some(g=>g.model===index||g.enable===index||g.position===index)||index===24||index===10){renderChain();renderControls();}
 });
 usb.addEventListener('preset',e=>{
   if(busy||scanning||selected!==active()||pendingWrites.size)return;

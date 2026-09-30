@@ -1,4 +1,5 @@
 const drawings={
+  tempo:'<path d="M7 21l3-18h4l3 18zM12 16l6-10M9 18h6"/><circle cx="12" cy="16" r="1"/>',
   gate:'<path d="M3 21V5h3V3h3v2h2v3h2V5h2V3h3v2h3v16M3 11h18M8 21v-5a4 4 0 0 1 8 0v5M10 15v6m4-6v6M2 21h20"/>',
   amp:'<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M8 6V4h8v2M2 14h20M5 20v2m14-2v2M5 10h7"/><circle cx="15" cy="10" r="1"/><circle cx="19" cy="10" r="1"/><path d="M6 17h12"/>',
   cab:'<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="15" r="4"/><circle cx="12" cy="15" r="1"/><path d="M9 5h6v3H9z"/>',

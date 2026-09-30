@@ -88,11 +88,11 @@ export function parseState(p) {
   const bypassOffset=i++, activeOffset=i++, activeSlot=p[activeOffset];
   if (activeSlot>2 || slots.some(s=>s>19) || ![0,1].includes(p[modeOffset]) || ![0,1].includes(p[bypassOffset])) throw Error('Unsupported slot values.');
   need(10); if (p[i++]!==0x81) throw Error('Unexpected tuning reference.'); i+=2;
-  const monitorOffset=i++; i++; if (p[i++]!==0x88) throw Error('Unsupported tempo layout.'); const tempo=readFloat(p,i); i+=4;
+  const monitorOffset=i++; i++; if (p[i++]!==0x88) throw Error('Unsupported tempo layout.'); const tempoOffset=i,tempo=readFloat(p,i); i+=4;
   if (i !== p.length || !Number.isFinite(tempo) || !Number.isFinite(inputTrim)) throw Error('Unknown state extension. Export diagnostics for this firmware.');
-  return {raw:p.slice(),bodyStart,modeOffset,cabOffset,slotOffsets,bypassOffset,activeOffset,monitorOffset,slots,activeSlot,stomp,cabBypass,bypass:p[bypassOffset]===1,colors,tempo,inputTrim};
+  return {raw:p.slice(),bodyStart,modeOffset,cabOffset,slotOffsets,bypassOffset,activeOffset,monitorOffset,slots,activeSlot,stomp,cabBypass,bypass:p[bypassOffset]===1,colors,tempo,tempoOffset,inputTrim};
 }
-export function mutateState(state, {preset,slot,bypass,cabBypass}={}) {
+export function mutateState(state, {preset,slot,bypass,cabBypass,tempo}={}) {
   const raw=state.raw.slice();
   if (slot!==undefined) {
     if (![0,1,2].includes(slot)) throw Error('Invalid slot.');
@@ -104,6 +104,10 @@ export function mutateState(state, {preset,slot,bypass,cabBypass}={}) {
   }
   if (bypass!==undefined) raw[state.bypassOffset]=bypass?1:0;
   if (cabBypass!==undefined) raw[state.cabOffset]=cabBypass?1:0;
+  if (tempo!==undefined) {
+    if(!Number.isFinite(tempo)||tempo<40||tempo>240)throw Error('Tempo must be between 40 and 240 BPM.');
+    raw.set(floatBytes(tempo),state.tempoOffset);
+  }
   // Match reference controller: USB editing needs direct monitoring to keep audio audible.
   raw[state.monitorOffset]=1;
   const body=raw.slice(state.bodyStart);
