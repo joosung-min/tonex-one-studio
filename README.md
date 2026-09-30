@@ -4,7 +4,7 @@ A desktop and mobile web editor for the original IK Multimedia ToneX One. Indepe
 
 ## Implemented
 
-- Compact editor with a fixed four-column effect grid, double-click/double-tap effect toggles, and saved light/dark theme. Slot buttons switch the pedal and set the load destination while preserving the selected preset; firmware sits beneath connection status and the last refresh time above the library.
+- Compact editor with a fixed four-column effect grid, double-click/double-tap effect toggles, and saved light/dark theme. Slot buttons switch the pedal and display its assigned preset. A load badge loads a browsed preset into the active slot and selects the Amp editor; all effect cards except EQ support double-tap toggling; firmware sits beneath connection status and the last refresh time above the library.
 - Mac/desktop Chrome Web Serial transport over USB, with 115200/8N1, DTR/RTS, authorized-port reconnection and stream cleanup.
 - Android WebUSB CDC-ACM transport (VID `1963`, PID `00d1`), 115200/8N1, DTR/RTS setup.
 - Wake/full-state handshake (also connects when an already-awake pedal skips its wake acknowledgement), continuous HDLC receive loop, CRC-16/X-25, bounded frame sizes, timeout handling and a command queue.

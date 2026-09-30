@@ -1,8 +1,11 @@
+import {APP_VERSION} from './version.js';
+import {CabinetModes} from './cabinet-mode.js';
 import {createPedalConnection} from './serial.js';
 import {parameters} from './parameters.js';
 import {effectIcon} from './effect-icons.js';
 import {bindEffectInteractions} from './effect-interactions.js';
-const $=id=>document.getElementById(id), usb=createPedalConnection();
+const $=id=>document.getElementById(id), usb=createPedalConnection(),cabinetModes=new CabinetModes();
+$('app-version').textContent=`v${APP_VERSION}`;$('footer-version').textContent=`v${APP_VERSION}`;
 const groups=[
   {id:'gate',name:'Gate',symbol:'⊓',enable:1,position:0,indices:[2,3,4],category:'NOISE GATE'},
   {id:'comp',name:'Comp',symbol:'≋',enable:6,position:5,indices:[7,8,9],category:'DYNAMICS'},
@@ -39,14 +42,13 @@ function step(p) {return p.type==='range'?(p.max-p.min>100?1:.1):1;}
 function format(value,p) {return Number.isFinite(value)?Number(value.toFixed(step(p)===1?0:1)).toString():'—';}
 function renderPresets() {
   const query=$('search').value.toLowerCase(), filtered=presets.filter(p=>p.name.toLowerCase().includes(query)||String(p.id+1).includes(query));
-  $('preset-count').textContent=String(presets.filter(p=>p.read).length).padStart(2,'0');
   if(!presets.length) $('preset-list').innerHTML='<div class="empty-list"><strong>Your library starts here.</strong>Connect your pedal to read its stored presets, or explore the demo.</div>';
   else if(!filtered.length)$('preset-list').innerHTML='<div class="empty-list">No matching presets.</div>';
   else $('preset-list').innerHTML=filtered.map(p=>`<button class="preset-row ${p.id===selected?'selected':''}" data-preset="${p.id}" aria-pressed="${p.id===selected}" ${busy||!p.read?'disabled':''}><span class="preset-index">${String(p.id+1).padStart(2,'0')}</span><i class="preset-dot" style="background:${p.color||'#93a786'}"></i><span>${escape(p.name)}</span><span class="playing">${p.id===active()?'●':'↗'}</span></button>`).join('');
   document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.preset);params=presets[selected].parameters||[];render();changeView('editor');});
 }
 const chainOrder=['gate','amp','cab','eq','comp','mod','delay','reverb'];
-const quickToggle=new Set(['gate','comp','mod','delay','reverb']);
+const quickToggle=new Set(['gate','amp','cab','comp','mod','delay','reverb']);
 function renderChain() {
   if(!$('chain').children.length) {
     $('chain').innerHTML=chainOrder.map(id=>{
@@ -57,11 +59,7 @@ function renderChain() {
       const g=groups.find(group=>group.id===button.dataset.effect);
       bindEffectInteractions(button,{
         select:()=>{effect=g.id;renderChain();renderControls();},
-        toggle:()=>{
-          if(!quickToggle.has(g.id))return;
-          if(!editable()){notify('Load this preset and connect your pedal before switching effects.');return;}
-          effect=g.id;applyParameter(g.enable,params[g.enable]===1?0:1,true);
-        }
+        toggle:()=>toggleEffect(g)
       });
     });
   }
@@ -75,24 +73,33 @@ function renderChain() {
     button.title=quickToggle.has(g.id)?`${g.name}: select to edit; double-click or double-tap to toggle${!editable()?' after loading the preset':''}`:`${g.name}: select to edit`;
   });
 }
+function toggleEffect(g) {
+  if(!quickToggle.has(g.id))return;
+  if(!editable()){notify('Load this preset and connect your pedal before switching effects.');return;}
+  effect=g.id;
+  if(g.id==='cab')applyParameter(24,cabinetModes.toggled(selected,params[24]),true);
+  else applyParameter(g.enable,params[g.enable]===1?0:1,true);
+}
 function renderControls() {
   const g=groups.find(g=>g.id===effect), enabled=editable(),disabled=enabled?'':'disabled';
-  $('effect-name').textContent=ampLabels[effect];$('effect-category').textContent=g.category;
+  $('effect-name').textContent=ampLabels[effect];
   $('effect-actions').className='effect-actions';
   $('effect-actions').innerHTML=(g.position!==undefined?`<select data-param="${g.position}" aria-label="Effect position" ${disabled}><option value="0" ${params[g.position]!==1?'selected':''}>Pre amp</option><option value="1" ${params[g.position]===1?'selected':''}>Post amp</option></select>`:'')+(g.model!==undefined?`<select data-param="${g.model}" aria-label="Effect model" ${disabled}>${modelNames[g.model].map((n,i)=>`<option value="${i}" ${params[g.model]===i?'selected':''}>${n}</option>`).join('')}</select>`:'')+(g.enable!==undefined?`<button class="toggle ${params[g.enable]!==1?'off':''}" data-toggle="${g.enable}" aria-pressed="${params[g.enable]===1}" ${disabled}>${params[g.enable]===1?'● On':'○ Off'}</button>`:'');
+  if(g.id==='cab')$('effect-actions').innerHTML+=`<button class="toggle ${params[24]===2?'off':''}" id="cab-toggle" aria-pressed="${params[24]!==2}" ${disabled}>${params[24]===2?'○ Off':'● On'}</button>`;
   $('parameter-controls').innerHTML=indicesFor(g).map(index=>{
     const p=parameters[index],v=params[index],title=label(p);
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
     if(p.type==='select')return `<label class="control"><span class="control-label">${title}</span><select data-param="${index}" ${disabled}>${(modelNames[index]||Array.from({length:p.max-p.min+1},(_,i)=>String(i+p.min))).map((n,i)=>`<option value="${i+p.min}" ${v===i+p.min?'selected':''}>${n}</option>`).join('')}</select></label>`;
     return `<div class="control"><label class="control-label" for="range-${index}">${title}</label><div id="knob-${index}" class="knob" style="--angle:${Number.isFinite(v)?270*(v-p.min)/(p.max-p.min):0}deg" aria-hidden="true"></div><input id="range-${index}" type="range" data-param="${index}" min="${p.min}" max="${p.max}" step="${step(p)}" value="${v??p.min}" ${disabled}><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label></div>`;
   }).join('');
+  if($('cab-toggle'))$('cab-toggle').onclick=()=>toggleEffect(g);
   document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.toggle),params[b.dataset.toggle]===1?0:1,true));
   document.querySelectorAll('select[data-param]').forEach(b=>b.onchange=()=>applyParameter(Number(b.dataset.param),Number(b.value),true));
   document.querySelectorAll('input[data-param]').forEach(b=>{
     b.oninput=()=>{if(b.value!==''&&Number.isFinite(Number(b.value)))applyParameter(Number(b.dataset.param),Number(b.value));};
     b.onchange=()=>{if(b.value!==''&&Number.isFinite(Number(b.value)))applyParameter(Number(b.dataset.param),Number(b.value));else updateControl(Number(b.dataset.param));};
   });
-  $('parameter-note').textContent=demo?'Demo controls are simulated.':selected!==active()&&selected!==null?'Load this preset to edit it on your pedal.':editable()?'Changes are sent live. Permanent saving is not implemented.':'Read a supported preset to enable live controls.';
+  $('parameter-note').textContent=demo?'Demo controls are simulated.':selected!==active()&&selected!==null?'Load this preset to edit it on your pedal.':editable()?'Permanent saving isn’t supported here. Use the official TONEX Editor app to save changes permanently.':'Read a supported preset to enable live controls.';
 }
 function updateControl(index) {
   const p=parameters[index],v=params[index];
@@ -106,9 +113,10 @@ function render() {
   $('preset-number').textContent=p?`PRESET ${String(p.id+1).padStart(2,'0')} / 20`:'NO PRESET SELECTED';
   $('preset-name').textContent=p?.name||'Connect your pedal';
   const isActive=!!p&&selected===active();
-  $('preset-status').hidden=!p;
-  $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'Ready to load';
-  $('preset-status').classList.toggle('ready-to-load',!!p&&!isActive);
+  $('preset-status').hidden=!isActive;
+  $('load').hidden=!p||isActive;
+  $('edit-status').hidden=!isActive;
+  $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'';
   $('status-text').textContent=busy?(scanning?'Reading presets…':'Connecting / syncing…'):demo?'Demo mode':usb.connected?(usb.transport==='webserial'?'USB serial connected':'USB connected'):'Not connected';
   $('status-dot').className=usb.connected?'live':'';
   $('connect').textContent=usb.connected?'Disconnect':'↗ Connect pedal';$('connect').disabled=busy;
@@ -142,14 +150,14 @@ async function confirmParameters() {
 }
 function applyParameter(index,value,rebuild=false) {
   if(!editable())return;const p=parameters[index];value=Math.max(p.min,Math.min(p.max,value));if(p.type!=='range')value=Math.round(value);
-  if(!Number.isFinite(value))return;params[index]=value;presets[selected].parameters=params.slice();dirty=true;
+  if(!Number.isFinite(value))return;if(index===24)cabinetModes.remember(selected,value);params[index]=value;presets[selected].parameters=params.slice();dirty=true;
   if(demo){$('edit-status').textContent='Demo changes · Simulated';}
   else {pendingWrites.set(index,value);clearTimeout(writeTimer);writeTimer=setTimeout(flushWrites,80);$('edit-status').textContent='Sending live changes…';}
   updateControl(index);if(rebuild){renderChain();renderControls();}
 }
 function storePreset(id,detail) {
   const existing=presets[id];if(!existing)return;
-  existing.name=detail.name||`Preset ${String(id+1).padStart(2,'0')}`;existing.parameters=detail.parameters;existing.read=true;
+  existing.name=detail.name||`Preset ${String(id+1).padStart(2,'0')}`;existing.parameters=detail.parameters;existing.read=true;cabinetModes.remember(id,detail.parameters?.[24]);
   if(!demo)try{localStorage.setItem('tonex-last-read',JSON.stringify({device:usb.device?.serialNumber,readAt:new Date().toISOString(),presets}));}catch{/* Local storage is optional. */}
 }
 async function scanPresets() {
@@ -171,8 +179,8 @@ async function scanPresets() {
     if(epoch===session){notify(`Read ${read}/20 presets. ${e.message}`);$('sync-label').textContent=`${read}/20 presets read · Retry refresh`;}
   } finally {if(epoch===session){busy=false;scanning=false;render();}}
 }
-async function runStateChange(change,{keepSelection=false}={}) {
-  if(!ready())return;const previousSelection=selected;cancelWrites();busy=true;render();const epoch=session;
+async function runStateChange(change) {
+  if(!ready())return;cancelWrites();busy=true;render();const epoch=session;
   try {
     if(demo) {
       if(change.slot!==undefined){pedalState.activeSlot=change.slot;pedalState.stomp=change.slot===2;}
@@ -181,12 +189,12 @@ async function runStateChange(change,{keepSelection=false}={}) {
     } else await usb.changeState(change);
     if(epoch!==session)return;activePreset=active();dirty=false;
     if(!demo){const detail=await usb.getPreset(active());if(epoch!==session)return;storePreset(active(),detail);}
-    selected=keepSelection&&presets[previousSelection]?.read?previousSelection:active();
+    selected=active();if(change.preset!==undefined)effect='amp';
     params=presets[selected].parameters.slice();$('notice').hidden=true;
   } catch(e){if(epoch===session)notify(e.message);}finally{if(epoch===session){busy=false;render();}}
 }
 function updateTimestamp() { $('sync-label').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('sync-label').title='Last preset refresh'; }
-function reset() {session++;cancelWrites();demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];dirty=false;$('sync-label').textContent='—';render();}
+function reset() {session++;cancelWrites();cabinetModes.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];dirty=false;$('sync-label').textContent='—';render();}
 function startDemo() {
   if(busy||usb.connected)return;reset();demo=true;
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];
@@ -204,7 +212,7 @@ usb.addEventListener('state',e=>{
 });
 usb.addEventListener('parameter',e=>{
   if(busy||scanning||selected!==active())return;const {index,value}=e.detail;if(index>=109||!Number.isFinite(value)||pendingWrites.has(index))return;
-  params[index]=value;if(presets[selected])presets[selected].parameters=params.slice();updateControl(index);
+  params[index]=value;if(index===24)cabinetModes.remember(selected,value);if(presets[selected])presets[selected].parameters=params.slice();updateControl(index);
   if(groups.some(g=>g.model===index||g.enable===index||g.position===index)||index===24){renderChain();renderControls();}
 });
 usb.addEventListener('preset',e=>{
@@ -228,7 +236,10 @@ $('refresh').onclick=()=>{if(!busy)void scanPresets();};$('search').oninput=rend
 $('load').onclick=()=>runStateChange({preset:selected,slot:pedalState?.activeSlot});
 document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{
   const slot=Number(b.dataset.slot);
-  if(slot!==pedalState?.activeSlot)void runStateChange({slot},{keepSelection:true});
+  if(!ready())return;
+  if(slot!==pedalState.activeSlot)void runStateChange({slot});
+  else {selected=active();params=presets[selected]?.parameters?.slice()||[];render();}
+
 });
 $('nav-presets').onclick=()=>changeView('presets');$('nav-editor').onclick=()=>changeView('editor');
 $('export-log').onclick=()=>download('tonex-usb-diagnostics.json',usb.diagnostics());

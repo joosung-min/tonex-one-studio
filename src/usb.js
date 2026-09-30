@@ -1,3 +1,4 @@
+import {APP_VERSION} from './version.js';
 import {VID,PID,FrameDecoder,frame,hex,messageType,wake,requestState,requestPreset,setParameter,parseState,parsePreset,parseParameter,mutateState} from './protocol.js';
 export const delay = ms => new Promise(r => setTimeout(r,ms));
 export class ResponseTimeoutError extends Error {
@@ -139,5 +140,5 @@ export class ToneXUSB extends EventTarget {
     if(device?.opened)try { await device.close(); } catch(e) { this.log('error',e.message); }
     if(hadSession||reason)this.emit('connection',{connected:false,reason});
   }
-  diagnostics() { return {app:'ToneX One Web / 0.3.1',transport:this.transport,userAgent:globalThis.navigator?.userAgent,secureContext:globalThis.isSecureContext,descriptors:this.descriptors,entries:this.entries}; }
+  diagnostics() { return {app:`ToneX One Web / ${APP_VERSION}`,transport:this.transport,userAgent:globalThis.navigator?.userAgent,secureContext:globalThis.isSecureContext,descriptors:this.descriptors,entries:this.entries}; }
 }
