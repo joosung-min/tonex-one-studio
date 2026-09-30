@@ -115,7 +115,6 @@ function render() {
   const isActive=!!p&&selected===active();
   $('preset-status').hidden=!isActive;
   $('load').hidden=!p||isActive;
-  $('edit-status').hidden=!isActive;
   $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'';
   $('status-text').textContent=busy?(scanning?'Reading presets…':'Connecting / syncing…'):demo?'Demo mode':usb.connected?(usb.transport==='webserial'?'USB serial connected':'USB connected'):'Not connected';
   $('status-dot').className=usb.connected?'live':'';
@@ -129,7 +128,6 @@ function render() {
   $('welcome').hidden=online;$('demo-banner').hidden=!demo;
   $('firmware-info').hidden=!usb.connected;
   $('firmware-info').textContent=usb.connected?`Firmware ${usb.firmware||'unknown'}`:'';
-  $('edit-status').textContent=demo?'Simulated controls':dirty?'Edited · Not saved':usb.connected?'Synced':'Live controls after connection';
   $('export-presets').disabled=!presets.some(p=>p.read)||busy;
   $('reconnect').disabled=busy||demo||usb.connected||!usb.supported;
 }
@@ -138,21 +136,20 @@ async function flushWrites() {
   const writes=[...pendingWrites];pendingWrites.clear(); const epoch=session;
   if(!writes.length||demo||!editable())return;
   try {for(const [index,value] of writes){if(epoch!==session||!editable())return;await usb.writeParameter(index,value);}}
-  catch(e){if(epoch===session){notify(`Parameter write failed: ${e.message}`);$('edit-status').textContent='Write failed · Refresh pedal';}}
+  catch(e){if(epoch===session){notify(`Parameter write failed: ${e.message}`);}}
   clearTimeout(confirmationTimer);confirmationTimer=setTimeout(()=>{if(epoch===session&&!pendingWrites.size)void confirmParameters();},500);
 }
 async function confirmParameters() {
   if(!usb.connected||busy||scanning||selected!==active())return;
   const epoch=session,id=active();
   try {const detail=await usb.getPreset(id);if(epoch!==session||active()!==id||selected!==id||pendingWrites.size)return;
-    storePreset(id,detail);params=detail.parameters;renderChain();renderControls();$('edit-status').textContent='Edited · Not saved';
-  }catch(e){if(epoch===session){usb.log('error',e.message);$('edit-status').textContent='Sent · Readback unavailable';}}
+    storePreset(id,detail);params=detail.parameters;renderChain();renderControls();
+  }catch(e){if(epoch===session){usb.log('error',e.message);}}
 }
 function applyParameter(index,value,rebuild=false) {
   if(!editable())return;const p=parameters[index];value=Math.max(p.min,Math.min(p.max,value));if(p.type!=='range')value=Math.round(value);
   if(!Number.isFinite(value))return;if(index===24)cabinetModes.remember(selected,value);params[index]=value;presets[selected].parameters=params.slice();dirty=true;
-  if(demo){$('edit-status').textContent='Demo changes · Simulated';}
-  else {pendingWrites.set(index,value);clearTimeout(writeTimer);writeTimer=setTimeout(flushWrites,80);$('edit-status').textContent='Sending live changes…';}
+  if(!demo){pendingWrites.set(index,value);clearTimeout(writeTimer);writeTimer=setTimeout(flushWrites,80);}
   updateControl(index);if(rebuild){renderChain();renderControls();}
 }
 function storePreset(id,detail) {
