@@ -60,3 +60,7 @@
 
 /* Effect identity remains visible when bypassed. */
 .effect-block[data-effect=gate],.effect-block[data-effect=comp],.effect-block[data-effect=mod],.effect-block[data-effect=delay],.effect-block[data-effect=reverb]{border-color:var(--effect-color);border-width:2px}
+
+.header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}.header-actions .theme-toggle{margin-left:0}.support-button{display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #475146;border-radius:6px;background:#253128;color:#d8e7cd;font-size:12px;min-height:38px;padding:8px 12px;text-decoration:none;white-space:nowrap}.support-button svg{width:16px;height:16px}.support-button:hover{background:#344436}.support-button:focus-visible{outline:3px solid #81b693;outline-offset:3px}
+@media(max-width:760px){.header-actions{grid-column:2;grid-row:1;margin:0;gap:6px}.support-button{min-height:34px;width:34px;padding:6px}.support-button span{display:none}}
+@media(max-width:380px){.topbar{padding-left:12px;padding-right:12px;column-gap:6px}.brand-block .brand{font-size:16px}.header-actions{gap:4px}}
