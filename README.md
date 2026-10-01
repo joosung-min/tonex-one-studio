@@ -4,9 +4,9 @@ A free, unofficial browser editor for the IK Multimedia TONEX® ONE pedal. Brows
 
 TONEX® and TONEX ONE are trademarks of IK Multimedia Production Srl. TXOne-Studio is an independent project and is not affiliated with, endorsed by, sponsored by, or associated with IK Multimedia.
 
-**[Open TXOne-Studio](https://yvr-vibe.github.io/tonex-one-studio/)**
+**[Open TXOne-Studio](https://yvr-vibe.github.io/txone-studio/)**
 
-[Getting started guide](https://yvr-vibe.github.io/tonex-one-studio/getting-started.html) — desktop and Android setup, controls, and troubleshooting.
+[Getting started guide](https://yvr-vibe.github.io/txone-studio/getting-started.html) — desktop and Android setup, controls, and troubleshooting.
 
 ## How to use
 

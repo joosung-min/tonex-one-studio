@@ -21,7 +21,7 @@ test('production deployment includes only bundled assets and required static fil
  assert.match(app,/\.\.\/sw\.js/);const sourceFiles=(await readdir(new URL('src/',root))).filter(file=>file.endsWith('.js'));
  const sourceSize=(await Promise.all(sourceFiles.map(file=>readFile(new URL('src/'+file,root),'utf8')))).reduce((size,text)=>size+text.length,0);assert.ok(app.length<sourceSize);
 });
-for(const prefix of ['/','/tonex-one-studio/'])test(`production URLs and offline cache stay within ${prefix}`,async()=>{
+for(const prefix of ['/','/txone-studio/'])test(`production URLs and offline cache stay within ${prefix}`,async()=>{
  const base=new URL(prefix,'https://example.github.io');
  for(const match of html.matchAll(/(?:src|href)="([^"]+)"/g)){
   const url=new URL(match[1],base);if(url.origin!==base.origin)continue;
