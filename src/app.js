@@ -1,3 +1,4 @@
+import {presetDisplayColor} from './preset-colors.js';
 import {writeSyncedDivision} from './synced-division.js';
 import {rhythmicDivisions,divisionButtons} from './rhythmic-divisions.js';
 import {TapTempo} from './tap-tempo.js';
@@ -50,7 +51,14 @@ function renderPresets() {
   const query=$('search').value.toLowerCase(), filtered=presets.filter(p=>p.name.toLowerCase().includes(query)||String(p.id+1).includes(query));
   if(!presets.length) $('preset-list').innerHTML='<div class="empty-list"><strong>Your library starts here.</strong>Connect your pedal to read its stored presets, or explore the demo.</div>';
   else if(!filtered.length)$('preset-list').innerHTML='<div class="empty-list">No matching presets.</div>';
-  else $('preset-list').innerHTML=filtered.map(p=>`<button class="preset-row ${p.id===selected?'selected':''}" data-preset="${p.id}" aria-pressed="${p.id===selected}" ${busy||!p.read?'disabled':''}><span class="preset-index">${String(p.id+1).padStart(2,'0')}</span><i class="preset-dot" style="background:${p.color||'#93a786'}"></i><span>${escape(p.name)}</span><span class="playing">${p.id===active()?'●':'↗'}</span></button>`).join('');
+  else $('preset-list').innerHTML=filtered.map(p=>{
+    const slots=(pedalState?.slots||[]).flatMap((id,slot)=>id===p.id?[slot]:[]);
+    const assignment=slots.length?` · Assigned to ${slots.map(slot=>'ABC'[slot]).join(', ')}`:'';
+    const activeSlot=slots.includes(pedalState?.activeSlot)?` · Active slot ${'ABC'[pedalState.activeSlot]}`:'';
+    const badges=slots.map(slot=>`<span class="preset-slot-badge ${slot===pedalState.activeSlot?'active':''}" data-preset-slot="${slot}" title="${slot===pedalState.activeSlot?'Active slot':'Assigned to slot'} ${'ABC'[slot]}">${'ABC'[slot]}</span>`).join('');
+    const color=p.color||'#93a786';
+    return `<button class="preset-row ${p.id===selected?'selected':''}" data-preset="${p.id}" aria-pressed="${p.id===selected}" aria-label="${escape(p.name+assignment+activeSlot)}" title="${escape(p.name)}" ${busy||!p.read?'disabled':''}><span class="preset-index">${String(p.id+1).padStart(2,'0')}</span><i class="preset-dot" style="background:${color}"></i><span class="preset-list-name">${escape(p.name)}</span><span class="preset-slot-badges" style="--badge-color:${color};--badge-ink:${presetInk(color)}">${badges||'<span class="playing" aria-hidden="true">↗</span>'}</span></button>`;
+  }).join('');
   document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>void loadPreset(Number(b.dataset.preset)));
 }
 const chainOrder=['gate','amp','cab','tempo','comp','mod','delay','reverb'];
@@ -311,7 +319,7 @@ async function scanPresets() {
   let read=0;
   try {
     await usb.getState();
-    presets=Array.from({length:20},(_,id)=>({id,name:`Reading preset ${String(id+1).padStart(2,'0')}…`,read:false,parameters:[],color:`rgb(${pedalState.colors[id].join(',')})`}));
+    presets=Array.from({length:20},(_,id)=>({id,name:`Reading preset ${String(id+1).padStart(2,'0')}…`,read:false,parameters:[],color:presetDisplayColor(pedalState.colors[id])}));
     for(let id=0;id<20;id++) {
       if(epoch!==session||!usb.connected)throw Error('Connection interrupted.');
       $('sync-label').textContent=`Reading ${id+1} of 20 presets…`;
@@ -343,14 +351,16 @@ function reset() {session++;resetTapTempo();cancelWrites();cabinetModes.clear();
 function startDemo() {
   if(busy||usb.connected)return;reset();demo=true;
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];
-  const colors=['#86a872','#c6a270','#839fac','#b88f81'];
+  const colors=new URLSearchParams(location.search).get('preview')==='preset-colors'
+    ? [[17,17,0],[0,17,0],[159,255,0],[47,0,255]].map(presetDisplayColor)
+    : ['#86a872','#c6a270','#839fac','#b88f81'];
   presets=names.map((name,id)=>{const values=parameters.map(p=>p.default);values[20]=3.4+(id%6)*.7;values[21]=5.2;values[11]=5.4;values[13]=4.8;values[16]=6.2;values[95]=1;values[99]=320;values[102]=18;values[42]=22;return {id,name,color:colors[id%4],parameters:values,read:true};});
   pedalState={slots:[0,1,2],activeSlot:0,stomp:false,bypass:false,tempo:120};selected=0;activePreset=0;params=presets[0].parameters.slice();updateTimestamp();$('notice').hidden=true;render();
 }
 usb.addEventListener('state',e=>{
   const previous=active();pedalState=e.detail;
   if(!pedalState){params=[];render();return;}
-  if(pedalState.colors)presets.forEach(p=>{if(pedalState.colors[p.id])p.color=`rgb(${pedalState.colors[p.id].join(',')})`;});
+  if(pedalState.colors)presets.forEach(p=>{if(pedalState.colors[p.id])p.color=presetDisplayColor(pedalState.colors[p.id]);});
   if(previous!==active()) {
     cancelWrites();activePreset=active();
     if(usb.connected&&!busy&&!scanning){selected=active();params=[];render();void usb.getPreset(selected).then(detail=>{if(!busy&&selected===active()){storePreset(selected,detail);params=detail.parameters;render();}}).catch(e=>notify(e.message));}
