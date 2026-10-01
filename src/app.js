@@ -25,7 +25,7 @@ const labels={2:'Threshold',3:'Release',4:'Depth',7:'Threshold',8:'Make-up gain'
 const ampLabels={amp:'Amplifier',tempo:'Global tempo',gate:'Noise gate',comp:'Compressor',cab:'Cabinet',mod:'Modulation',delay:'Delay',reverb:'Reverb'};
 let activationMethod='double';
 try{if(localStorage.getItem('txone-activation')==='single')activationMethod='single';}catch{}
-let bypassReturnSlot=null;
+let bypassReturnSlot=null,bypassPresetContext=null;
 let masterVolume=null,masterUnavailable=false,settingsReading=false;
 let demo=false,busy=false,scanning=false,pedalState=null,presets=[],selected=null,effect='amp',params=[],activePreset=null;
 const tapTempo=new TapTempo(),confirmedSync=new Map();
@@ -178,15 +178,17 @@ function updateControl(index) {
   if($(`value-${index}`)&&document.activeElement!==$(`value-${index}`))$(`value-${index}`).value=format(v,p);
 }
 function render() {
+  document.body.classList.toggle('global-bypassed',!!pedalState?.bypass);
+  if(!pedalState?.bypass&&!busy)bypassPresetContext=null;
   renderPresets();renderChain();renderControls();
-  const p=presets.find(p=>p.id===selected),online=demo||usb.connected;
+  const p=(pedalState?.bypass&&bypassPresetContext)||presets.find(p=>p.id===selected),online=demo||usb.connected;
   $('preset-number').textContent=p?`PRESET ${String(p.id+1).padStart(2,'0')} / 20`:'NO PRESET SELECTED';
   $('preset-name').textContent=p?.name||'Connect your pedal';
   $('preset-name').title=p?.name||'Connect your pedal';
   document.querySelector('.tone-card').style.setProperty('--preset-color',p?.color||'var(--border)');
-  const isActive=!!p&&selected===active();
+  const isActive=!!p&&(pedalState?.bypass||selected===active());
   $('preset-status').hidden=!isActive;
-  $('preset-status').textContent=isActive?'Active':'';
+  $('preset-status').textContent=isActive?(pedalState?.bypass?'Bypassed':'Active'):'';
   $('status-text').textContent=busy?(scanning?'Reading presets…':'Connecting / syncing…'):demo?'Demo mode':usb.connected?(usb.transport==='webserial'?'USB serial connected':'USB connected'):'Not connected';
   $('status-dot').className=usb.connected?'live':'';
   $('connect').textContent=usb.connected?'Disconnect':'↗ Connect pedal';$('connect').disabled=busy;
@@ -209,7 +211,8 @@ function render() {
   $('export-presets').disabled=!presets.some(p=>p.read)||busy;renderSettings();
 }
 function adjacentPreset(direction){
-  const index=presets.findIndex(p=>p.id===selected);
+  const navigationPreset=pedalState?.bypass&&bypassPresetContext?bypassPresetContext.id:selected;
+  const index=presets.findIndex(p=>p.id===navigationPreset);
   return index<0?null:presets[index+direction];
 }
 function presetInk(color){
@@ -230,14 +233,15 @@ function renderPresetNavigation(){
     button.style.setProperty('--destination-color',color);button.style.setProperty('--destination-ink',presetInk(color));
     const name=destination?.name||'—',letters=Array.from(name);
     button.querySelector('small').textContent=letters.length>12?letters.slice(0,12).join('')+'…':name;
-    button.title=destination?`Load ${name} into slot ${'ABC'[pedalState?.activeSlot]||'A'}`:`No ${title.toLowerCase()} preset`;
-    button.setAttribute('aria-label',destination?`${title}: load ${name} into slot ${'ABC'[pedalState?.activeSlot]||'A'}`:`${title}: no preset`);
+    button.title=destination?`Load ${name} into slot ${'ABC'[pedalState?.bypass&&bypassPresetContext?bypassPresetContext.slot:pedalState?.activeSlot]||'A'}`:`No ${title.toLowerCase()} preset`;
+    button.setAttribute('aria-label',destination?`${title}: load ${name} into slot ${'ABC'[pedalState?.bypass&&bypassPresetContext?bypassPresetContext.slot:pedalState?.activeSlot]||'A'}`:`${title}: no preset`);
   }
 }
 async function loadPreset(id){
   const target=presets.find(p=>p.id===id);
   if(!ready()||!target?.read)return;
   changeView('editor');
+  if(pedalState.bypass&&bypassPresetContext){await applyGlobalSetting('bypass',false);if(!ready()||pedalState.bypass)return;}
   if(id===active()){selected=id;params=target.parameters.slice();effect='amp';render();return;}
   await runStateChange({preset:id,slot:pedalState.activeSlot});
 }
@@ -409,6 +413,7 @@ async function applyGlobalSetting(key,value){
   clearTimeout(confirmationTimer);busy=true;render();
   try{
     if(key==='bypass'){
+      if(value&&!pedalState.bypass){const current=presets.find(p=>p.id===selected);bypassPresetContext=current?{id:current.id,name:current.name,color:current.color,slot:pedalState?.activeSlot}:null;}
       if(demo){
         const origin=pedalState.activeSlot;
         if(value){bypassReturnSlot=origin!==2?origin:bypassReturnSlot;pedalState.activeSlot=2;pedalState.stomp=true;}
@@ -427,7 +432,7 @@ async function applyGlobalSetting(key,value){
 }
 usb.addEventListener('master-volume',e=>{masterVolume=e.detail;masterUnavailable=false;if(!busy&&!settingsReading)renderSettings();});
 function updateTimestamp() { $('sync-label').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('sync-label').title='Last preset refresh'; }
-function reset() {bypassReturnSlot=null;masterVolume=null;masterUnavailable=false;settingsReading=false;session++;resetTapTempo();cancelWrites();cabinetModes.clear();confirmedSync.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];$('sync-label').textContent='—';render();}
+function reset() {bypassReturnSlot=null;bypassPresetContext=null;masterVolume=null;masterUnavailable=false;settingsReading=false;session++;resetTapTempo();cancelWrites();cabinetModes.clear();confirmedSync.clear();effect='amp';demo=false;busy=false;scanning=false;pedalState=null;presets=[];selected=null;activePreset=null;params=[];$('sync-label').textContent='—';render();}
 function startDemo() {
   if(busy||usb.connected)return;reset();demo=true;
   const names=['British Breakup','California Clean','Plexi After Hours','Velvet Drive','Tweed on the Edge','Modern High Gain','Midnight Jazz','Desert Blues','Studio Crunch','Glass & Spring','Bass Foundation','Boutique Lead','Vintage Rhythm','Ambient Bloom','Classic Rock','Warm & Wide','Country Snap','Heavy Current','Soft Focus','Direct & Clean'];
@@ -438,7 +443,9 @@ function startDemo() {
   pedalState={slots:[0,1,2],activeSlot:0,stomp:false,bypass:false,tempo:120,inputTrim:0,tuningReference:440,directMonitoring:true};masterVolume=6.5;selected=0;activePreset=0;params=presets[0].parameters.slice();updateTimestamp();$('notice').hidden=true;render();
 }
 usb.addEventListener('state',e=>{
-  const previous=active();pedalState=e.detail;
+  const previous=active();
+  if(e.detail?.bypass&&!pedalState?.bypass&&!bypassPresetContext){const current=presets.find(p=>p.id===selected);bypassPresetContext=current?{id:current.id,name:current.name,color:current.color,slot:pedalState?.activeSlot}:null;}
+  pedalState=e.detail;
   if(!pedalState){params=[];render();return;}
   if(pedalState.colors)presets.forEach(p=>{if(pedalState.colors[p.id])p.color=presetDisplayColor(pedalState.colors[p.id]);});
   if(previous!==active()) {

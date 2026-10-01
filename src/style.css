@@ -134,7 +134,29 @@ body[data-view=settings] .settings-panel{display:block}
 
 .global-toggle{background:var(--field);color:var(--secondary-ink);border:1px solid var(--border)}.global-toggle:not(.off){background:var(--selected);color:var(--secondary-ink);border-color:var(--selected-border)}
 
-.preset-navigation #global-bypass-shortcut{flex:0 0 52px;width:52px;height:52px;min-width:52px;min-height:52px;max-width:52px;padding:3px;align-items:center;text-align:center;background:#a92c35;border-color:#a92c35;color:#fff;touch-action:manipulation;}
+.preset-navigation #global-bypass-shortcut{flex:0 0 52px;width:52px;height:52px;min-width:52px;min-height:52px;max-width:52px;padding:3px;align-items:center;text-align:center;background:var(--surface-alt);border-color:#a92c35;color:#a92c35;touch-action:manipulation;}
 .preset-navigation #global-bypass-shortcut>span{font-size:11px;line-height:1.2;}
-.preset-navigation #global-bypass-shortcut.active{background:#e13744;border-color:#e13744;box-shadow:0 0 0 2px var(--surface),0 0 0 4px #e13744;}
+.preset-navigation #global-bypass-shortcut.active{background:#c02d3b;border-color:#c02d3b;color:#fff;box-shadow:0 0 0 2px var(--surface),0 0 0 4px #c02d3b;}
 .preset-navigation #global-bypass-shortcut:disabled{opacity:.45;}
+
+:root[data-theme=dark] .preset-navigation #global-bypass-shortcut:not(.active){border-color:#ff8590;color:#ff8590;}
+
+/* Global bypass changes presentation without changing stored effect states. */
+:root body.global-bypassed .slot-buttons button,
+:root body.global-bypassed .slot-buttons button.active,
+:root body.global-bypassed .preset-navigation button:not(#global-bypass-shortcut),
+:root body.global-bypassed .chain .effect-block{background:var(--surface-alt);border-color:var(--border);color:var(--ink);}
+:root body.global-bypassed .slot-buttons button.active,
+:root body.global-bypassed .chain .effect-block.selected{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);}
+:root body.global-bypassed .chain .effect-block .effect-state{color:var(--muted);}
+:root body.global-bypassed .chain .effect-block .effect-led{background:var(--border);box-shadow:none;}
+
+:root body.global-bypassed .tone-card{border-color:var(--border);box-shadow:none;}
+:root body.global-bypassed .slot-buttons button.active,
+:root body.global-bypassed .chain .effect-block.selected{border-color:var(--border);box-shadow:none;}
+:root body.global-bypassed .preset-row.selected{background:transparent;border-color:transparent;}
+:root body.global-bypassed .preset-slot-badge.active{background:var(--surface-alt);border-color:var(--border);color:var(--muted);}
+
+:root body.global-bypassed .chain .effect-block.selected:not(:focus-visible){outline:none;}
+
+body.global-bypassed .editor .parameters-card{display:none;}
