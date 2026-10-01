@@ -122,11 +122,23 @@ function renderControls() {
     return `${heading}${bandStart}<div class="control"><label class="control-label" for="range-${index}">${title}</label><label class="value-field"><input id="value-${index}" aria-label="${title} numeric value" type="number" min="${p.min}" max="${p.max}" step="${step(p)}" data-param="${index}" value="${Number.isFinite(v)?format(v,p):''}" placeholder="—" ${disabled}><small>${unit(p)}</small></label><input id="range-${index}" type="range" data-param="${index}" min="${Math.ceil(p.min)}" max="${Math.floor(p.max)}" step="1" value="${v??p.min}" ${disabled}></div>${bandEnd}`;
   }).join('');
   if(effect==='tempo'){
-    $('parameter-controls').innerHTML=`<div class="tempo-control"><div class="tempo-input"><input id="tempo-value" aria-label="Global BPM" type="number" min="40" max="240" step="0.1" value="${Number.isFinite(tapPreview??pedalState?.tempo)?Number((tapPreview??pedalState.tempo).toFixed(1)):''}" placeholder="—" ${ready()?'':'disabled'}><span>BPM</span><button id="apply-tempo" class="secondary" ${ready()?'':'disabled'}>Apply</button></div><input id="tempo-slider" aria-label="Tempo slider" type="range" min="40" max="240" step="1" value="${Number.isFinite(tapPreview??pedalState?.tempo)?(tapPreview??pedalState.tempo):120}" ${ready()?'':'disabled'}></div>`;
+    $('parameter-controls').innerHTML=`<div class="tempo-control"><div class="tempo-input"><input id="tempo-value" aria-label="Global BPM" type="number" min="40" max="240" step="0.1" value="${Number.isFinite(tapPreview??pedalState?.tempo)?Number((tapPreview??pedalState.tempo).toFixed(1)):''}" placeholder="—" ${ready()?'':'disabled'}><div class="tempo-step-buttons"><button id="tempo-up" type="button" aria-label="Increase BPM by 1" title="Increase BPM by 1" ${ready()?'':'disabled'}>↑</button><button id="tempo-down" type="button" aria-label="Decrease BPM by 1" title="Decrease BPM by 1" ${ready()?'':'disabled'}>↓</button></div><span>BPM</span><button id="apply-tempo" class="secondary" ${ready()?'':'disabled'}>Apply</button></div><input id="tempo-slider" aria-label="Tempo slider" type="range" min="40" max="240" step="1" value="${Number.isFinite(tapPreview??pedalState?.tempo)?(tapPreview??pedalState.tempo):120}" ${ready()?'':'disabled'}></div>`;
     $('apply-tempo').onclick=()=>void applyManualTempo();
     $('tempo-value').onkeydown=e=>{if(e.key==='Enter')void applyManualTempo();};
-    $('tempo-slider').oninput=()=>{$('tempo-value').value=$('tempo-slider').value;};
-    $('tempo-value').oninput=()=>{const value=Number($('tempo-value').value);if($('tempo-value').value!==''&&Number.isFinite(value)&&value>=40&&value<=240)$('tempo-slider').value=value;};
+    const updateTempoSteps=()=>{
+      const text=$('tempo-value').value,value=Number(text),valid=text!==''&&Number.isFinite(value)&&value>=40&&value<=240;
+      $('tempo-up').disabled=!ready()||!valid||value>=240;
+      $('tempo-down').disabled=!ready()||!valid||value<=40;
+    };
+    $('tempo-slider').oninput=()=>{$('tempo-value').value=$('tempo-slider').value;updateTempoSteps();};
+    $('tempo-value').oninput=()=>{const value=Number($('tempo-value').value);if($('tempo-value').value!==''&&Number.isFinite(value)&&value>=40&&value<=240)$('tempo-slider').value=value;updateTempoSteps();};
+    for(const [id,direction] of [['tempo-up',1],['tempo-down',-1]])$(id).onclick=()=>{
+      const text=$('tempo-value').value,value=Number(text);
+      if(!ready()||text===''||!Number.isFinite(value)||value<40||value>240)return;
+      $('tempo-value').value=Number(Math.max(40,Math.min(240,value+direction)).toFixed(1));
+      $('tempo-value').dispatchEvent(new Event('input',{bubbles:true}));
+    };
+    updateTempoSteps();
     $('parameter-note').textContent=demo?'Demo tempo is simulated.':'Tap the Global BPM card to set tempo, or enter a value here. Effects follow tempo when their sync is enabled.';return;
   }
   if($('cab-toggle'))$('cab-toggle').onclick=()=>toggleEffect(g);
