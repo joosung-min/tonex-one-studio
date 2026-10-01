@@ -85,3 +85,6 @@
 .tone-info{min-width:0;max-width:100%}.tone-info h2{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .preset-heading-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:8px}.preset-heading-row .eyebrow{margin:0}.preset-heading-row .preset-status{font-size:10px;line-height:1.2;padding:3px 7px}.tone-info h2{margin-top:0;margin-bottom:0}.tone-info .load-row{margin-top:12px}
+
+.parameters-heading{gap:12px;padding-bottom:10px}.parameters-heading h2{margin:0;min-width:0}.parameters-heading .effect-actions{margin-left:auto;max-width:none;flex-wrap:nowrap;flex-shrink:0}.effect-parameter-row{grid-column:1/-1;display:flex;align-items:center;gap:8px;width:100%;max-width:520px}.effect-parameter-row select{flex:1;min-width:0;min-height:40px;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:5px;background:var(--field);color:var(--secondary-ink)}.effect-parameter-row .toggle{min-height:40px;min-width:76px;font-size:12px;white-space:nowrap}.parameter-controls{padding-top:10px}
+@media(max-width:380px){.effect-parameter-row{gap:6px}.effect-parameter-row select{font-size:11px;padding:8px 5px}.effect-parameter-row .toggle{font-size:11px;min-width:68px}}

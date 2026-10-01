@@ -94,9 +94,14 @@ function renderControls() {
   const g=groups.find(g=>g.id===effect), enabled=editable(),disabled=enabled?'':'disabled';
   $('effect-name').textContent=ampLabels[effect];
   $('effect-actions').className='effect-actions';
-  $('effect-actions').innerHTML=(g.position!==undefined?`<select data-param="${g.position}" aria-label="Effect position" ${disabled}><option value="0" ${params[g.position]!==1?'selected':''}>Pre amp</option><option value="1" ${params[g.position]===1?'selected':''}>Post amp</option></select>`:'')+(g.model!==undefined?`<select data-param="${g.model}" aria-label="Effect model" ${disabled}>${modelNames[g.model].map((n,i)=>`<option value="${i}" ${params[g.model]===i?'selected':''}>${n}</option>`).join('')}</select>`:'')+(g.enable!==undefined?`<button class="toggle ${params[g.enable]!==1?'off':''}" data-toggle="${g.enable}" aria-pressed="${params[g.enable]===1}" ${disabled}>${params[g.enable]===1?'● On':'○ Off'}</button>`:'');
+  $('effect-actions').innerHTML=g.enable!==undefined?`<button class="toggle ${params[g.enable]!==1?'off':''}" data-toggle="${g.enable}" aria-pressed="${params[g.enable]===1}" ${disabled}>${params[g.enable]===1?'● On':'○ Off'}</button>`:'';
   if(g.id==='cab')$('effect-actions').innerHTML+=`<button class="toggle ${params[24]===2?'off':''}" id="cab-toggle" aria-pressed="${params[24]!==2}" ${disabled}>${params[24]===2?'○ Off':'● On'}</button>`;
-  $('parameter-controls').innerHTML=indicesFor(g).map(index=>{
+  const indices=indicesFor(g),syncIndex=indices.find(index=>parameters[index].id.endsWith('_SYNC'));
+  const position=g.position!==undefined?`<select data-param="${g.position}" aria-label="Effect position" ${disabled}><option value="0" ${params[g.position]!==1?'selected':''}>Pre amp</option><option value="1" ${params[g.position]===1?'selected':''}>Post amp</option></select>`:'';
+  const model=g.model!==undefined?`<select data-param="${g.model}" aria-label="Effect model" ${disabled}>${modelNames[g.model].map((name,i)=>`<option value="${i}" ${params[g.model]===i?'selected':''}>${name}</option>`).join('')}</select>`:'';
+  const sync=syncIndex!==undefined?`<button class="toggle ${params[syncIndex]!==1?'off':''}" data-toggle="${syncIndex}" aria-label="Sync" aria-pressed="${params[syncIndex]===1}" ${disabled}>Sync ${params[syncIndex]===1?'On':'Off'}</button>`:'';
+  const settings=position||model||sync?`<div class="effect-parameter-row" role="group" aria-label="Effect settings">${position}${model}${sync}</div>`:'';
+  $('parameter-controls').innerHTML=settings+indices.filter(index=>index!==syncIndex).map(index=>{
     const p=parameters[index],v=params[index],title=label(p);
     const heading=g.id==='amp'&&index===11?`<div class="parameter-section-heading"><h3>EQ</h3><select data-param="10" aria-label="EQ position" ${disabled}><option value="0" ${params[10]!==1?'selected':''}>Pre amp</option><option value="1" ${params[10]===1?'selected':''}>Post amp</option></select></div>`:'';
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
