@@ -1,3 +1,4 @@
+import {writeSyncedDivision} from './synced-division.js';
 import {rhythmicDivisions,divisionButtons} from './rhythmic-divisions.js';
 import {TapTempo} from './tap-tempo.js';
 import {APP_VERSION} from './version.js';
@@ -201,13 +202,12 @@ async function applyDivision(index,value){
   if(!editable()||!parameters[index]?.id.endsWith('_TS')||!parameters[index-1]?.id.endsWith('_SYNC'))return;
   if(demo){applyParameter(index-1,1);applyParameter(index,value,true);return;}
   const epoch=session,id=active(),syncIndex=index-1,writes=new Map(pendingWrites);
-  writes.delete(syncIndex);writes.delete(index);writes.set(syncIndex,1);writes.set(index,value);
+  writes.delete(syncIndex);writes.delete(index);
   cancelWrites();busy=true;render();
   try{
-    for(const [parameter,setting] of writes){if(epoch!==session)return;await usb.writeParameter(parameter,setting);}
-    const detail=await usb.getPreset(id);if(epoch!==session||active()!==id)return;
+    const detail=await writeSyncedDivision(usb,id,index,value,{writes,isCurrent:()=>epoch===session&&active()===id});
+    if(epoch!==session||active()!==id)return;
     storePreset(id,detail);params=detail.parameters;
-    if(params[syncIndex]!==1||params[index]!==value)throw Error('The pedal did not confirm Sync and Division. Try again.');
     $('notice').hidden=true;
   }catch(e){
     if(epoch===session){
