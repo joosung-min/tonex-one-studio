@@ -3,7 +3,7 @@ import https from 'node:https';
 import {readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
 const root=path.resolve(process.cwd(),process.argv[2]||'.'), port=Number(process.env.PORT||5173);
-const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.txt':'text/plain'};
+const types={'.xml':'application/xml','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.txt':'text/plain'};
 const handler=async(req,res)=>{
   try {
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
