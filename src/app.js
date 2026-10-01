@@ -9,7 +9,7 @@ import {parameters} from './parameters.js';
 import {effectIcon} from './effect-icons.js';
 import {bindEffectInteractions} from './effect-interactions.js';
 const $=id=>document.getElementById(id), usb=createPedalConnection(),cabinetModes=new CabinetModes();
-$('app-version').textContent=`v${APP_VERSION}`;$('footer-version').textContent=`v${APP_VERSION}`;
+$('app-version').textContent=`v${APP_VERSION}`;
 const groups=[
   {id:'gate',name:'Gate',symbol:'⊓',enable:1,position:0,indices:[2,3,4],category:'NOISE GATE'},
   {id:'comp',name:'Comp',symbol:'≋',enable:6,position:5,indices:[7,8,9],category:'DYNAMICS'},
@@ -396,7 +396,7 @@ document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{
 });
 $('nav-presets').onclick=()=>changeView('presets');$('nav-editor').onclick=()=>changeView('editor');
 $('export-presets').onclick=()=>download('tonex-preset-settings.json',{format:'tonex-web-settings-v1',demo,exportedAt:new Date().toISOString(),device:usb.descriptors?.serialNumber,note:'Preset metadata and parameters only. Does not include tone model or IR binaries. Cannot be restored by this app.',presets});
-$('welcome-copy').textContent='Connect your powered ToneX One to your desktop or Android device using a USB data cable. Close any other TONEX Editor apps, then press “Connect pedal” and allow USB access when prompted.';
+$('welcome-copy').textContent='Connect your powered pedal using a USB data cable. Close any other TONEX Editor apps, then press “Connect pedal” and allow USB access when prompted.';
 changeView('editor');render();
 if('serviceWorker' in navigator&&isSecureContext)navigator.serviceWorker.register(new URL('../sw.js',import.meta.url)).catch(()=>{});
 
