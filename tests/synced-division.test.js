@@ -15,3 +15,11 @@ test('a slot change during settling prevents the Division write',async()=>{
  let current=true;const writes=[];const usb={writeParameter:async(i,v)=>writes.push([i,v]),getPreset:async()=>{throw Error('must not read');}};
  await assert.rejects(writeSyncedDivision(usb,0,67,10,{isCurrent:()=>current,wait:async()=>{current=false;}}),/Preset changed/);assert.deepEqual(writes,[[66,1]]);
 });
+
+test('already-enabled Sync skips its write and settling delay but still confirms both values',async()=>{
+ const writes=[],waits=[];let reads=0;
+ const parameters=[];parameters[97]=1;parameters[98]=7;
+ const usb={writeParameter:async(i,v)=>writes.push([i,v]),getPreset:async()=>{reads++;return {parameters};}};
+ await writeSyncedDivision(usb,0,98,7,{syncEnabled:true,wait:async ms=>waits.push(ms)});
+ assert.deepEqual(writes,[[98,7]]);assert.deepEqual(waits,[320]);assert.equal(reads,1);
+});

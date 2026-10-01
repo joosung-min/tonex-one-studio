@@ -10,7 +10,9 @@ A free browser editor for the IK Multimedia TONEX ONE pedal. Browse its stored p
 2. Close the official TONEX Editor and any other app using the pedal.
 3. Open the app, press **Connect pedal**, and select the pedal when your browser asks for USB access.
 4. Use **A/B/C** to select a slot. Selecting a preset from the list or pressing **Previous / Next** automatically loads it into that slot. Navigation follows the stored preset order.
-5. Select an effect to edit it. Double-click or double-tap an effect card to turn it on or off. EQ stays in the Amp section; tap **Global BPM** repeatedly to set the tempo. Choosing a Mod/Delay **Division** automatically enables Sync for that effect.
+5. Select an effect to edit it. Double-click or double-tap an effect card to turn it on or off. EQ stays in the Amp section; tap **Tempo** repeatedly to set the tempo. Choosing a Mod/Delay **Division** automatically enables Sync for that effect.
+
+Sliders use whole steps. For parameters that support decimals, enter them directly in the value box.
 
 Choose **Explore demo** to try the interface without a pedal.
 
