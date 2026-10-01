@@ -1,8 +1,8 @@
-# ToneX One Studio
+# TXOne-Studio
 
 A free browser editor for the IK Multimedia TONEX ONE pedal. Browse its stored presets, switch A/B/C slots, edit effects and parameters, and set or tap the global tempo.
 
-**[Open ToneX One Studio](https://yvr-vibe.github.io/tonex-one-studio/)**
+**[Open TXOne-Studio](https://yvr-vibe.github.io/tonex-one-studio/)**
 
 [Getting started guide](https://yvr-vibe.github.io/tonex-one-studio/getting-started.html) — desktop and Android setup, controls, and troubleshooting.
 
@@ -34,4 +34,4 @@ If the pedal does not appear or connect, check its power, the data cable, browse
 
 Questions: [vanvibesmedia@gmail.com](mailto:vanvibesmedia@gmail.com). [Support this project](https://www.paypal.com/ncp/payment/A6DN7PPRV5PR6).
 
-Independent community project; not affiliated with IK Multimedia. Released under the [MIT license](LICENSE), with [third-party notices](THIRD_PARTY_LICENSES.txt).
+Independent community project; not affiliated with or endorsed by IK Multimedia. TONEX and TONEX ONE are trademarks of IK Multimedia Production Srl. Released under the [MIT license](LICENSE), with [third-party notices](THIRD_PARTY_LICENSES.txt).

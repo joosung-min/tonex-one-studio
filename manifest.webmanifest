@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "ToneX One Studio",
-  "short_name": "ToneX Studio",
+  "name": "TXOne-Studio",
+  "short_name": "TXOne-Studio",
   "description": "Independent USB pedal editor",
   "start_url": "./",
   "display": "standalone",

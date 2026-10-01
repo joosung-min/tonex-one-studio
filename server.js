@@ -15,4 +15,4 @@ const handler=async(req,res)=>{
   }catch{res.writeHead(404);res.end('Not found');}
 };
 const server=process.env.TLS_CERT&&process.env.TLS_KEY?https.createServer({cert:await readFile(process.env.TLS_CERT),key:await readFile(process.env.TLS_KEY)},handler):http.createServer(handler);
-server.listen(port,'0.0.0.0',()=>console.log(`ToneX One Web: ${process.env.TLS_CERT?'https':'http'}://localhost:${port}`));
+server.listen(port,'0.0.0.0',()=>console.log(`TXOne-Studio: ${process.env.TLS_CERT?'https':'http'}://localhost:${port}`));

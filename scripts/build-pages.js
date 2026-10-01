@@ -10,7 +10,7 @@ const bundle=await build({
   absWorkingDir:root,entryPoints:{app:'src/app.js',theme:'src/theme.js',style:'src/style.css'},
   outdir:path.join(output,'assets'),entryNames:'[name]-[hash]',bundle:true,minify:true,
   format:'esm',platform:'browser',target:'es2022',sourcemap:false,legalComments:'none',write:false,
-  banner:{js:'/*! ToneX One Studio: MIT. Third-party notices: ../THIRD_PARTY_LICENSES.txt */',css:'/*! ToneX One Studio: MIT. Third-party notices: ../THIRD_PARTY_LICENSES.txt */'}
+  banner:{js:'/*! TXOne-Studio: MIT. Third-party notices: ../THIRD_PARTY_LICENSES.txt */',css:'/*! TXOne-Studio: MIT. Third-party notices: ../THIRD_PARTY_LICENSES.txt */'}
 });
 await mkdir(path.join(output,'assets'));
 for(const file of bundle.outputFiles)await writeFile(file.path,file.contents);
@@ -29,4 +29,4 @@ const worker=(await readFile(path.join(root,'sw.js'),'utf8'))
   .replace(/const CACHE=.*?;/,`const CACHE=PREFIX+'release-${APP_VERSION}-${revision}';`)
   .replace(/const SHELL=\[.*?\]\.map/,`const SHELL=${JSON.stringify(shell)}.map`);
 await writeFile(path.join(output,'sw.js'),(await transform(worker,{minify:true,target:'es2022',sourcemap:false})).code);
-console.log(`Built ToneX One Studio ${APP_VERSION}: ${assets.length} minified assets, no source maps.`);
+console.log(`Built TXOne-Studio ${APP_VERSION}: ${assets.length} minified assets, no source maps.`);
