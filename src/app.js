@@ -50,7 +50,7 @@ function renderPresets() {
   if(!presets.length) $('preset-list').innerHTML='<div class="empty-list"><strong>Your library starts here.</strong>Connect your pedal to read its stored presets, or explore the demo.</div>';
   else if(!filtered.length)$('preset-list').innerHTML='<div class="empty-list">No matching presets.</div>';
   else $('preset-list').innerHTML=filtered.map(p=>`<button class="preset-row ${p.id===selected?'selected':''}" data-preset="${p.id}" aria-pressed="${p.id===selected}" ${busy||!p.read?'disabled':''}><span class="preset-index">${String(p.id+1).padStart(2,'0')}</span><i class="preset-dot" style="background:${p.color||'#93a786'}"></i><span>${escape(p.name)}</span><span class="playing">${p.id===active()?'●':'↗'}</span></button>`).join('');
-  document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.preset);params=presets[selected].parameters||[];render();changeView('editor');});
+  document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>void loadPreset(Number(b.dataset.preset)));
 }
 const chainOrder=['gate','amp','cab','tempo','comp','mod','delay','reverb'];
 const quickToggle=new Set(['gate','amp','cab','comp','mod','delay','reverb']);
@@ -102,7 +102,7 @@ function renderControls() {
     if(p.type==='switch')return `<div class="control"><span class="control-label">${title}</span><button class="toggle ${v!==1?'off':''}" data-toggle="${index}" aria-pressed="${v===1}" ${disabled}>${p.id.endsWith('_MODE')?(v===1?'Ping-pong':'Normal'):(v===1?'On':'Off')}</button></div>`;
     if(p.type==='select'){
       if(p.id.endsWith('_TS')){
-        const disabledDivision=!enabled||params[index-1]!==1;
+        const disabledDivision=!enabled;
         const listed=divisionButtons.some(option=>option.value===v);
         const current=rhythmicDivisions.find(option=>option.value===v)?.label||'—';
         return `<div class="control rhythmic-division"><span id="division-label-${index}" class="control-label">Division</span><div class="division-buttons" role="group" aria-labelledby="division-label-${index}">${divisionButtons.map(option=>`<button type="button" data-division="${index}" data-value="${option.value}" aria-pressed="${v===option.value}" title="${rhythmicDivisions[option.value].label}" ${disabledDivision?'disabled':''}>${option.label}</button>`).join('')}</div>${!listed&&Number.isFinite(v)?`<span class="division-current">Current: ${current}</span>`:''}</div>`;
@@ -120,7 +120,7 @@ function renderControls() {
   }
   if($('cab-toggle'))$('cab-toggle').onclick=()=>toggleEffect(g);
   document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.toggle),params[b.dataset.toggle]===1?0:1,true));
-  document.querySelectorAll('[data-division]').forEach(b=>b.onclick=()=>applyParameter(Number(b.dataset.division),Number(b.dataset.value),true));
+  document.querySelectorAll('[data-division]').forEach(b=>b.onclick=()=>void applyDivision(Number(b.dataset.division),Number(b.dataset.value)));
   document.querySelectorAll('select[data-param]').forEach(b=>b.onchange=()=>applyParameter(Number(b.dataset.param),Number(b.value),true));
   document.querySelectorAll('input[data-param]').forEach(b=>{
     b.oninput=()=>{if(b.value!==''&&Number.isFinite(Number(b.value)))applyParameter(Number(b.dataset.param),Number(b.value));};
@@ -138,30 +138,78 @@ function render() {
   const p=presets.find(p=>p.id===selected),online=demo||usb.connected;
   $('preset-number').textContent=p?`PRESET ${String(p.id+1).padStart(2,'0')} / 20`:'NO PRESET SELECTED';
   $('preset-name').textContent=p?.name||'Connect your pedal';
+  $('preset-name').title=p?.name||'Connect your pedal';
   document.querySelector('.tone-card').style.setProperty('--preset-color',p?.color||'var(--border)');
   const isActive=!!p&&selected===active();
   $('preset-status').hidden=!isActive;
-  $('load').hidden=!p||isActive;
   $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'';
   $('status-text').textContent=busy?(scanning?'Reading presets…':'Connecting / syncing…'):demo?'Demo mode':usb.connected?(usb.transport==='webserial'?'USB serial connected':'USB connected'):'Not connected';
   $('status-dot').className=usb.connected?'live':'';
   $('connect').textContent=usb.connected?'Disconnect':'↗ Connect pedal';$('connect').disabled=busy;
   $('refresh').disabled=!online||busy;$('refresh').classList.toggle('spinner',scanning);
-  $('load').disabled=!ready()||!p?.read;
   document.querySelectorAll('[data-slot]').forEach(b=>{
     const current=Number(b.dataset.slot)===pedalState?.activeSlot;
     const slotPreset=presets[pedalState?.slots[Number(b.dataset.slot)]];
+    const slot=Number(b.dataset.slot),name=slotPreset?.read?slotPreset.name:'—',letters=Array.from(name);
+    b.querySelector('.slot-preset').textContent=letters.length>10?letters.slice(0,10).join('')+'…':name;
+    const description=`Slot ${'ABC'[slot]} · ${slot===2?'Stomp':'Dual'} · ${name}`;
+    b.title=description;b.setAttribute('aria-label',description);
     const color=slotPreset?.color||'#93a786';b.style.setProperty('--slot-color',color);
-    const rgb=color.match(/[\d.]+/g),hex=color.startsWith('#')?color.slice(1):null;
-    const components=hex&&hex.length===6?[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)):rgb?.slice(0,3).map(Number)||[147,167,134];
-    const linear=components.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
-    b.style.setProperty('--slot-ink',.2126*linear[0]+.7152*linear[1]+.0722*linear[2]>.179?'#111811':'#fff');
+    b.style.setProperty('--slot-ink',presetInk(color));
     b.classList.toggle('active',current);b.setAttribute('aria-pressed',String(current));b.disabled=!ready();
   });
+  renderPresetNavigation();
   $('welcome').hidden=online;$('demo-banner').hidden=!demo;
   $('firmware-info').hidden=!usb.connected;
   $('firmware-info').textContent=usb.connected?`Firmware ${usb.firmware||'unknown'}`:'';
   $('export-presets').disabled=!presets.some(p=>p.read)||busy;
+}
+function adjacentPreset(direction){
+  const index=presets.findIndex(p=>p.id===selected);
+  return index<0?null:presets[index+direction];
+}
+function presetInk(color){
+  const hex=color.startsWith('#')?color.slice(1):null,rgb=color.match(/[\d.]+/g);
+  const components=hex&&hex.length===6?[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)):rgb?.slice(0,3).map(Number)||[147,167,134];
+  const linear=components.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
+  return .2126*linear[0]+.7152*linear[1]+.0722*linear[2]>.179?'#111811':'#fff';
+}
+function renderPresetNavigation(){
+  for(const [id,direction,title] of [['previous-preset',-1,'Previous'],['next-preset',1,'Next']]){
+    const button=$(id),destination=adjacentPreset(direction),color=destination?.color||'#93a786';
+    button.disabled=!ready()||!destination?.read;
+    button.style.setProperty('--destination-color',color);button.style.setProperty('--destination-ink',presetInk(color));
+    const name=destination?.name||'—',letters=Array.from(name);
+    button.querySelector('small').textContent=letters.length>12?letters.slice(0,12).join('')+'…':name;
+    button.title=destination?`Load ${name} into slot ${'ABC'[pedalState?.activeSlot]||'A'}`:`No ${title.toLowerCase()} preset`;
+    button.setAttribute('aria-label',destination?`${title}: load ${name} into slot ${'ABC'[pedalState?.activeSlot]||'A'}`:`${title}: no preset`);
+  }
+}
+async function loadPreset(id){
+  const target=presets.find(p=>p.id===id);
+  if(!ready()||!target?.read)return;
+  changeView('editor');
+  if(id===active()){selected=id;params=target.parameters.slice();effect='amp';render();return;}
+  await runStateChange({preset:id,slot:pedalState.activeSlot});
+}
+async function applyDivision(index,value){
+  if(!editable()||!parameters[index]?.id.endsWith('_TS')||!parameters[index-1]?.id.endsWith('_SYNC'))return;
+  if(demo){applyParameter(index-1,1);applyParameter(index,value,true);return;}
+  const epoch=session,id=active(),syncIndex=index-1,writes=new Map(pendingWrites);
+  writes.delete(syncIndex);writes.delete(index);writes.set(syncIndex,1);writes.set(index,value);
+  cancelWrites();busy=true;render();
+  try{
+    for(const [parameter,setting] of writes){if(epoch!==session)return;await usb.writeParameter(parameter,setting);}
+    const detail=await usb.getPreset(id);if(epoch!==session||active()!==id)return;
+    storePreset(id,detail);params=detail.parameters;
+    if(params[syncIndex]!==1||params[index]!==value)throw Error('The pedal did not confirm Sync and Division. Try again.');
+    $('notice').hidden=true;
+  }catch(e){
+    if(epoch===session){
+      try{const detail=await usb.getPreset(id);if(epoch===session&&active()===id){storePreset(id,detail);params=detail.parameters;}}catch{}
+      if(epoch===session)notify(`Division update failed: ${e.message}`);
+    }
+  }finally{if(epoch===session){busy=false;render();}}
 }
 function cancelWrites() {pendingWrites.clear();clearTimeout(writeTimer);clearTimeout(confirmationTimer);}
 async function flushWrites() {
@@ -297,7 +345,8 @@ $('connect').onclick=async()=>{
   catch(e){busy=false;notify(e.name==='NotFoundError'?'No pedal was selected. Connect your powered ToneX One and try again.':e.message);render();}
 };
 $('refresh').onclick=()=>{if(!busy)void scanPresets();};$('search').oninput=renderPresets;$('demo').onclick=startDemo;$('exit-demo').onclick=reset;
-$('load').onclick=()=>runStateChange({preset:selected,slot:pedalState?.activeSlot});
+$('previous-preset').onclick=()=>void loadPreset(adjacentPreset(-1)?.id);
+$('next-preset').onclick=()=>void loadPreset(adjacentPreset(1)?.id);
 document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{
   const slot=Number(b.dataset.slot);
   if(!ready())return;
@@ -325,3 +374,5 @@ $('theme-toggle').onclick=()=>{
   renderTheme();
 };
 renderTheme();
+
+if(new URL(location.href).searchParams.get('demo')==='1')startDemo();

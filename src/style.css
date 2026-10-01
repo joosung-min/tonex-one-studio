@@ -75,3 +75,11 @@
 :root[data-theme=dark] .division-buttons button[aria-pressed=true]{color:#142314}
 
 .editor-footer{flex-wrap:wrap;gap:8px 16px}
+
+.preset-navigation{display:flex;gap:8px;margin-left:auto}.preset-navigation button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-width:130px;min-height:46px;max-width:165px;padding:8px 12px;border-radius:6px;border:1px solid var(--destination-color);background:var(--destination-color);color:var(--destination-ink);text-align:left}.preset-navigation button>span{font-size:12px;font-weight:700}.preset-navigation button>small{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.preset-navigation button:disabled{background:var(--surface-alt);border-color:var(--border);color:var(--muted);opacity:.6}.preset-navigation button:not(:disabled):hover{filter:brightness(1.08)}
+@media(max-width:760px){.load-row{flex-wrap:wrap}.load-row .slot-buttons{flex-basis:100%}.preset-navigation{width:100%;margin:0}.preset-navigation button{flex:1;min-width:0;max-width:none;min-height:46px}}
+
+.load-row{flex-wrap:wrap}.slot-buttons button{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-width:100px;max-width:140px;min-height:46px}.slot-heading{display:flex;align-items:center;gap:6px}.slot-preset{font-size:11px;font-weight:400;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){.load-row .slot-buttons{width:100%;min-width:0}.slot-buttons button{min-width:0;max-width:none}.slot-preset{font-size:10px}}
+
+.tone-info{min-width:0;max-width:100%}.tone-info h2{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
