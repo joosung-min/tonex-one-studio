@@ -83,3 +83,5 @@
 @media(max-width:760px){.load-row .slot-buttons{width:100%;min-width:0}.slot-buttons button{min-width:0;max-width:none}.slot-preset{font-size:10px}}
 
 .tone-info{min-width:0;max-width:100%}.tone-info h2{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.preset-heading-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:8px}.preset-heading-row .eyebrow{margin:0}.preset-heading-row .preset-status{font-size:10px;line-height:1.2;padding:3px 7px}.tone-info h2{margin-top:0;margin-bottom:0}.tone-info .load-row{margin-top:12px}

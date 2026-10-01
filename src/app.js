@@ -142,7 +142,7 @@ function render() {
   document.querySelector('.tone-card').style.setProperty('--preset-color',p?.color||'var(--border)');
   const isActive=!!p&&selected===active();
   $('preset-status').hidden=!isActive;
-  $('preset-status').textContent=isActive?(demo?'Active in demo':'Active on your pedal'):'';
+  $('preset-status').textContent=isActive?'Active':'';
   $('status-text').textContent=busy?(scanning?'Reading presets…':'Connecting / syncing…'):demo?'Demo mode':usb.connected?(usb.transport==='webserial'?'USB serial connected':'USB connected'):'Not connected';
   $('status-dot').className=usb.connected?'live':'';
   $('connect').textContent=usb.connected?'Disconnect':'↗ Connect pedal';$('connect').disabled=busy;
