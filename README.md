@@ -4,6 +4,8 @@ A free browser editor for the IK Multimedia TONEX ONE pedal. Browse its stored p
 
 **[Open ToneX One Studio](https://yvr-vibe.github.io/tonex-one-studio/)**
 
+[Getting started guide](https://yvr-vibe.github.io/tonex-one-studio/getting-started.html) — desktop and Android setup, controls, and troubleshooting.
+
 ## How to use
 
 1. Connect your powered TONEX ONE to a desktop or Android device with a USB **data** cable. Android requires an OTG-capable connection.

@@ -16,13 +16,15 @@ await mkdir(path.join(output,'assets'));
 for(const file of bundle.outputFiles)await writeFile(file.path,file.contents);
 const assets=bundle.outputFiles.map(file=>path.relative(output,file.path).split(path.sep).join('/'));
 const asset=name=>assets.find(file=>file.startsWith(`assets/${name}-`));
-let html=await readFile(path.join(root,'index.html'),'utf8');
+for(const page of ['index.html','getting-started.html']){
+let html=await readFile(path.join(root,page),'utf8');
 for(const [source,name] of [['app.js','app'],['theme.js','theme'],['style.css','style']])html=html.replace(`./src/${source}`,`./${asset(name)}`);
-await writeFile(path.join(output,'index.html'),html);
+await writeFile(path.join(output,page),html);
+}
 for(const file of ['manifest.webmanifest','THIRD_PARTY_LICENSES.txt','LICENSE'])await copyFile(path.join(root,file),path.join(output,file));
 for(const directory of ['public','licenses'])await cp(path.join(root,directory),path.join(output,directory),{recursive:true});
 const revision=createHash('sha256').update(bundle.outputFiles.map(file=>file.text).join('\n')).digest('hex').slice(0,12);
-const shell=['./','index.html',...assets,'manifest.webmanifest','public/icon.svg','LICENSE','THIRD_PARTY_LICENSES.txt','licenses/Apache-2.0.txt'];
+const shell=['./','index.html','getting-started.html',...assets,'manifest.webmanifest','public/icon.svg','LICENSE','THIRD_PARTY_LICENSES.txt','licenses/Apache-2.0.txt'];
 const worker=(await readFile(path.join(root,'sw.js'),'utf8'))
   .replace(/const CACHE=.*?;/,`const CACHE=PREFIX+'release-${APP_VERSION}-${revision}';`)
   .replace(/const SHELL=\[.*?\]\.map/,`const SHELL=${JSON.stringify(shell)}.map`);
