@@ -1,4 +1,3 @@
-import {isCounterSite,showVisitCounter} from './visit-counter.js';
 import {rhythmicDivisions,divisionButtons} from './rhythmic-divisions.js';
 import {TapTempo} from './tap-tempo.js';
 import {APP_VERSION} from './version.js';
@@ -326,8 +325,3 @@ $('theme-toggle').onclick=()=>{
   renderTheme();
 };
 renderTheme();
-
-if(isCounterSite(location)&&navigator.onLine!==false){
-  let storage;try {storage=sessionStorage;}catch {}
-  void showVisitCounter($('visit-counter'),{storage});
-}

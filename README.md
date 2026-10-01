@@ -24,7 +24,7 @@ If the pedal does not appear or connect, check its power, the data cable, browse
 
 - Edits are live. Use the official TONEX Editor to save changes permanently; do not assume they survive a preset switch or power cycle.
 - **Export settings** downloads preset names and parameter values. It is not a complete preset backup and cannot be restored by this app.
-- Pedal data stays between your browser and pedal. The public visitor counter uses CounterAPI and counts approximately once per browser tab session. CounterAPI receives network information, including your IP address; no pedal data is sent to it.
+- Pedal data stays between your browser and pedal.
 
 ## Contact and license
 
