@@ -54,6 +54,18 @@ export function parseParameter(p) {
   if (messageType(p) !== 0x0309 || i < 0 || p[i+5] !== 0x88 || i+10 > p.length) return null;
   const value = readFloat(p,i+6); return Number.isFinite(value) ? {index:p[i+4],value} : null;
 }
+// TONEX ONE global volume uses group 3, distinct from preset parameter group 2.
+// Command layout adapted from Builty/TonexOneController (Apache-2.0).
+export function setMasterVolume(value) {
+  if(!Number.isFinite(value)||value<0||value>10)throw Error('Master volume must be between 0 and 10.');
+  return bytes([0xb9,3,0x81,9,3,0x82,10,0,0x80,0x0b,3,0xb9,4,3,0,0,0x88],floatBytes(value));
+}
+export const requestMasterVolume=()=>bytes([0xb9,3,0x81,13,3,0x82,5,0,0x80,0x0b,3,0xb9,3,3,0,0]);
+export function parseMasterVolume(p) {
+  const i=findSequence(p,[0xb9,4,3,0,0,0x88]);
+  if(messageType(p)!==0x0309||i<0||i+10>p.length)return null;
+  const value=readFloat(p,i+6);return Number.isFinite(value)&&value>=0&&value<=10?value:null;
+}
 export function parsePreset(p) {
   if (messageType(p) !== 0x0304) throw Error('Expected preset details.');
   let name = null;
@@ -73,7 +85,7 @@ export function parseState(p) {
   const bodyStart = 8; let i = 22;
   const need = n => { if (i+n > p.length) throw Error('Truncated pedal state.'); };
   need(5); if (p[i] !== 0x88) throw Error('Unsupported state layout. Controls remain disabled.');
-  const inputTrim = readFloat(p,++i); i+=4;
+  const inputTrimOffset=++i,inputTrim = readFloat(p,i); i+=4;
   need(5); const modeOffset=i, cabOffset=i+1, stomp=p[i++] === 1, cabBypass=p[i++] === 1; i++;
   if (p[i++] !== 0xba || p[i++] !== 20) throw Error('Unexpected preset color table.');
   const colors=[];
@@ -87,20 +99,21 @@ export function parseState(p) {
   const slotOffsets=[i,i+2,i+4], slots=slotOffsets.map(o=>p[o]|p[o+1]<<8); i+=6;
   const bypassOffset=i++, activeOffset=i++, activeSlot=p[activeOffset];
   if (activeSlot>2 || slots.some(s=>s>19) || ![0,1].includes(p[modeOffset]) || ![0,1].includes(p[bypassOffset])) throw Error('Unsupported slot values.');
-  need(10); if (p[i++]!==0x81) throw Error('Unexpected tuning reference.'); i+=2;
+  need(10); if (p[i++]!==0x81) throw Error('Unexpected tuning reference.'); const tuningOffset=i,tuningReference=p[i]|p[i+1]<<8; i+=2;
   const monitorOffset=i++; i++; if (p[i++]!==0x88) throw Error('Unsupported tempo layout.'); const tempoOffset=i,tempo=readFloat(p,i); i+=4;
-  if (i !== p.length || !Number.isFinite(tempo) || !Number.isFinite(inputTrim)) throw Error('Unknown state extension. Export diagnostics for this firmware.');
-  return {raw:p.slice(),bodyStart,modeOffset,cabOffset,slotOffsets,bypassOffset,activeOffset,monitorOffset,slots,activeSlot,stomp,cabBypass,bypass:p[bypassOffset]===1,colors,tempo,tempoOffset,inputTrim};
+  if (i !== p.length || !Number.isFinite(tempo) || !Number.isFinite(inputTrim) || ![0,1].includes(p[monitorOffset]) || tuningReference<415 || tuningReference>465) throw Error('Unknown state extension. Export diagnostics for this firmware.');
+  return {raw:p.slice(),bodyStart,modeOffset,cabOffset,slotOffsets,bypassOffset,activeOffset,monitorOffset,slots,activeSlot,stomp,cabBypass,bypass:p[bypassOffset]===1,colors,tempo,tempoOffset,inputTrim,inputTrimOffset,tuningReference,tuningOffset,directMonitoring:p[monitorOffset]===1};
 }
-export function mutateState(state, {preset,slot,bypass,cabBypass,tempo}={}) {
+export function mutateState(state, {preset,slot,bypass,cabBypass,tempo,inputTrim,tuningReference,directMonitoring}={}) {
+  if(bypass===true&&(slot===undefined?!state.stomp:slot!==2))throw Error('Pedal bypass requires Slot C (Stomp mode). Select C in the Editor first.');
   const raw=state.raw.slice();
   if (slot!==undefined) {
     if (![0,1,2].includes(slot)) throw Error('Invalid slot.');
-    raw[state.activeOffset]=slot; raw[state.modeOffset]=slot===2?1:0;
+    raw[state.activeOffset]=slot;raw[state.modeOffset]=slot===2?1:0;if(slot!==2)raw[state.bypassOffset]=0;
   }
   if (preset!==undefined) {
     if (!Number.isInteger(preset)||preset<0||preset>19||slot===undefined) throw Error('Invalid preset assignment.');
-    raw[state.slotOffsets[slot]]=preset; raw[state.slotOffsets[slot]+1]=0; raw[state.bypassOffset]=0;
+    raw[state.slotOffsets[slot]]=preset; raw[state.slotOffsets[slot]+1]=0;
   }
   if (bypass!==undefined) raw[state.bypassOffset]=bypass?1:0;
   if (cabBypass!==undefined) raw[state.cabOffset]=cabBypass?1:0;
@@ -108,8 +121,16 @@ export function mutateState(state, {preset,slot,bypass,cabBypass,tempo}={}) {
     if(!Number.isFinite(tempo)||tempo<40||tempo>240)throw Error('Tempo must be between 40 and 240 BPM.');
     raw.set(floatBytes(tempo),state.tempoOffset);
   }
-  // Match reference controller: USB editing needs direct monitoring to keep audio audible.
-  raw[state.monitorOffset]=1;
+  for(const [name,value] of Object.entries({bypass,cabBypass,directMonitoring}))if(value!==undefined&&typeof value!=='boolean')throw Error(`${name} must be On or Off.`);
+  if(inputTrim!==undefined){
+    if(!Number.isFinite(inputTrim)||inputTrim< -15||inputTrim>15)throw Error('Input trim must be between -15 and 15 dB.');
+    raw.set(floatBytes(inputTrim),state.inputTrimOffset);
+  }
+  if(tuningReference!==undefined){
+    if(!Number.isInteger(tuningReference)||tuningReference<415||tuningReference>465)throw Error('Tuning reference must be a whole number between 415 and 465 Hz.');
+    raw[state.tuningOffset]=tuningReference&255;raw[state.tuningOffset+1]=tuningReference>>8;
+  }
+  if(directMonitoring!==undefined)raw[state.monitorOffset]=directMonitoring?1:0;
   const body=raw.slice(state.bodyStart);
   return bytes(raw.slice(0,5),[0x82,body.length&255,body.length>>8,0x80,0x0b,3],body);
 }

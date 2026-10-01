@@ -29,6 +29,6 @@ interoperability. This project is an independent, unofficial, community-built
 USB controller and is not affiliated with, endorsed by, or sponsored by any
 trademark owner. See README.md for details.
 
-Parameter table, preset display palette, and protocol cross-reference: Builty/TonexOneController
+Parameter table, preset display palette, and global USB command adaptations, and protocol cross-reference: Builty/TonexOneController
 https://github.com/Builty/TonexOneController
 Copyright (C) 2025 Greg Smith. Apache-2.0. See licenses/Apache-2.0.txt.

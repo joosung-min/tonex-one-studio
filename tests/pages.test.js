@@ -17,7 +17,7 @@ for(const prefix of ['/','/txone-studio/']) {
  });
  test(`service worker cache and offline fallback stay inside ${prefix}`,async()=>{
   const handlers={},added=[],deleted=[],matches=[];
-  const appPrefix=`tonex-studio:${prefix}:`,cacheName=appPrefix+'v32';
+  const appPrefix=`tonex-studio:${prefix}:`,cacheName=appPrefix+'v36';
   const caches={open:async()=>({addAll:async urls=>added.push(...urls)}),keys:async()=>[appPrefix+'v28',cacheName,'tonex-studio:/other/:v4'],delete:async key=>deleted.push(key),match:async(url,options)=>{matches.push({url,options});return String(url).endsWith('index.html')?'offline HTML':undefined;}};
   vm.runInNewContext(read('sw.js'),{URL,Response,self:{location:{href:`https://example.github.io${prefix}sw.js`},addEventListener:(type,handler)=>handlers[type]=handler},caches,fetch:async()=>{throw Error('offline');}});
   let pending;handlers.install({waitUntil:p=>pending=p});await pending;

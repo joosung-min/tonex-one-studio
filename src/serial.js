@@ -65,7 +65,7 @@ export class ToneXSerial extends ToneXUSB {
   async close(reason='') {
     if(this.closeTask)return this.closeTask;
     const hadSession=!!this.port||this.connected,port=this.port,reader=this.reader,writer=this.writer,readTask=this.readTask;
-    ++this.generation;this.connected=false;this.state=null;this.firmware=null;this.cancelPending(Error(reason||'Serial session closed.'));
+    ++this.generation;this.connected=false;this.state=null;this.firmware=null;this.masterVolume=null;this.bypassReturnSlot=null;this.cancelPending(Error(reason||'Serial session closed.'));
     this.port=null;this.device=null;this.reader=null;this.writer=null;this.readTask=null;
     this.closeTask=(async()=>{
       // Cancel reads and abort queued writes before releasing the stream locks.

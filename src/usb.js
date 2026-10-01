@@ -1,12 +1,12 @@
 import {APP_VERSION} from './version.js';
-import {VID,PID,FrameDecoder,frame,hex,messageType,wake,requestState,requestPreset,setParameter,parseState,parsePreset,parseParameter,mutateState} from './protocol.js';
+import {VID,PID,FrameDecoder,frame,hex,messageType,wake,requestState,requestPreset,setParameter,parseState,parsePreset,parseParameter,mutateState,setMasterVolume,requestMasterVolume,parseMasterVolume} from './protocol.js';
 export const delay = ms => new Promise(r => setTimeout(r,ms));
 export class ResponseTimeoutError extends Error {
   constructor(type,timeout) { super(`No response to 0x${type.toString(16)} within ${timeout} ms.`); this.name='ResponseTimeoutError'; }
 }
 export class ToneXUSB extends EventTarget {
   constructor(usb = globalThis.navigator?.usb) {
-    super(); this.transport='webusb'; this.usb=usb; this.queue=Promise.resolve(); this.pending=null; this.device=null; this.state=null; this.entries=[]; this.connected=false; this.generation=0;
+    super(); this.bypassReturnSlot=null;this.transport='webusb'; this.usb=usb; this.queue=Promise.resolve(); this.pending=null; this.device=null; this.state=null; this.entries=[]; this.connected=false; this.generation=0;
     usb?.addEventListener('disconnect',e=>{if(e.device===this.device) void this.close('Pedal disconnected.');});
   }
   emit(type,detail) { this.dispatchEvent(new CustomEvent(type,{detail})); }
@@ -91,11 +91,11 @@ export class ToneXUSB extends EventTarget {
   }
   receive(p) {
     const type=messageType(p); this.log('in',`Message 0x${type.toString(16)}`,p);
-    const expected=this.pending?.type===type;
+    const expected=this.pending?.type===type&&(!this.pending.matches||this.pending.matches(p));
     try {
       if(type===0x0306) {
-        this.state=parseState(p); this.emit('state',this.state);
-      } else if(type===0x0309) { const change=parseParameter(p); if(change)this.emit('parameter',change); }
+        this.state=parseState(p);if(this.bypassReturnSlot!==null&&(!this.state.bypass||this.state.activeSlot!==2))this.bypassReturnSlot=null;this.emit('state',this.state);
+      } else if(type===0x0309) { const volume=parseMasterVolume(p);if(volume!==null){this.masterVolume=volume;this.emit('master-volume',volume);}else {const change=parseParameter(p);if(change)this.emit('parameter',change);} }
       else if(type===0x0304&&!expected) this.emit('preset',parsePreset(p));
       if(expected) { const pending=this.pending; this.pending=null; clearTimeout(pending.timer); pending.resolve(p); }
     } catch(e) {
@@ -111,31 +111,73 @@ export class ToneXUSB extends EventTarget {
     const result=await this.device.transferOut(this.output.endpointNumber,data);
     if(result.status!=='ok'||result.bytesWritten!==data.length)throw Error('USB write was not completed.');
   }
-  exchange(payload,type,timeout=2500) {
+  exchange(payload,type,timeout=2500,matches=null) {
     if(this.pending) return Promise.reject(Error('Another USB request is still pending.'));
     return new Promise((resolve,reject)=>{
       const timer=setTimeout(()=>this.cancelPending(new ResponseTimeoutError(type,timeout)),timeout);
-      const pending={type,resolve,reject,timer}; this.pending=pending; this.send(payload).catch(e=>{if(this.pending===pending)this.cancelPending(e);});
+      const pending={type,resolve,reject,timer,matches}; this.pending=pending; this.send(payload).catch(e=>{if(this.pending===pending)this.cancelPending(e);});
     });
   }
+  async readMasterVolume() {
+    const reply=await this.exchange(requestMasterVolume(),0x0309,1200,p=>parseMasterVolume(p)!==null);
+    return parseMasterVolume(reply);
+  }
+  getMasterVolume(){return this.enqueue(()=>this.readMasterVolume());}
+  changeMasterVolume(value){return this.enqueue(async()=>{
+    if(!this.connected||!this.state)throw Error('Pedal is not ready.');
+    const command=setMasterVolume(value);await this.send(command);await delay(120);
+    const actual=await this.readMasterVolume();
+    if(Math.abs(actual-value)>.011)throw Error('Pedal did not confirm Master volume.');
+    return actual;
+  });}
   getState() { return this.enqueue(async()=>{await this.exchange(requestState(),0x0306); return this.state;}); }
   getPreset(id) { return this.enqueue(async()=>parsePreset(await this.exchange(requestPreset(id),0x0304))); }
-  changeState(change) {
-    return this.enqueue(async()=>{
-      // Refresh immediately before read-modify-write so physical pedal changes are preserved.
+  changeState(change) {return this.enqueue(()=>this.changeStateNow(change));}
+  async changeStateNow(change,fresh=false) {
+    // Refresh immediately before read-modify-write so physical pedal changes are preserved.
+    if(!fresh)await this.exchange(requestState(),0x0306);
+    if(!this.state)throw Error('Cannot edit an unknown state layout.');
+    await this.send(mutateState(this.state,change));await delay(120);
+    const matches=s=>!((change.slot!==undefined&&s.activeSlot!==change.slot)||(change.preset!==undefined&&s.slots[change.slot]!==change.preset)||(change.bypass!==undefined&&s.bypass!==change.bypass)||(change.cabBypass!==undefined&&s.cabBypass!==change.cabBypass)||(change.tempo!==undefined&&Math.abs(s.tempo-change.tempo)>.01)||(change.inputTrim!==undefined&&Math.abs(s.inputTrim-change.inputTrim)>.01)||(change.tuningReference!==undefined&&s.tuningReference!==change.tuningReference)||(change.directMonitoring!==undefined&&s.directMonitoring!==change.directMonitoring));
+    // A mode/bypass transition may return an earlier state while it settles. Read again without replaying the write.
+    const attempts=change.bypass!==undefined?3:1;
+    for(let attempt=0;attempt<attempts;attempt++){
       await this.exchange(requestState(),0x0306);
-      if(!this.state)throw Error('Cannot edit an unknown state layout.');
-      await this.send(mutateState(this.state,change)); await delay(120);
-      await this.exchange(requestState(),0x0306);
-      const s=this.state;
-      if((change.slot!==undefined&&s.activeSlot!==change.slot)||(change.preset!==undefined&&s.slots[change.slot]!==change.preset)||(change.bypass!==undefined&&s.bypass!==change.bypass)||(change.cabBypass!==undefined&&s.cabBypass!==change.cabBypass)||(change.tempo!==undefined&&Math.abs(s.tempo-change.tempo)>.01))throw Error('Pedal did not confirm the requested state. Refresh before retrying.');
-      return s;
-    });
+      if(matches(this.state))return this.state;
+      if(attempt<attempts-1)await delay(150);
+    }
+    throw Error('Pedal did not confirm the requested state. Refresh before retrying.');
   }
+  changeBypass(enabled){return this.enqueue(async()=>{
+    if(typeof enabled!=='boolean')throw Error('Bypass must be On or Off.');
+    const generation=this.generation;
+    await this.exchange(requestState(),0x0306);
+    const origin=this.state.activeSlot,returnSlot=this.bypassReturnSlot;
+    const change=enabled?{slot:2,bypass:true}:{slot:returnSlot??origin,bypass:false};
+    try{
+      const result=await this.changeStateNow(change,true);
+      if(generation!==this.generation)throw Error('USB session changed.');
+      this.bypassReturnSlot=enabled?(origin!==2?origin:returnSlot):null;
+      return result;
+    }catch(error){
+      // If entry into bypass only changed the mode, restore the original slot before reporting failure.
+      if(enabled&&origin!==2&&generation===this.generation&&this.connected&&this.state?.activeSlot===2){
+        try{await this.changeStateNow({slot:origin,bypass:false});}
+        catch(restoreError){throw Error(`${error.message} Could not restore Slot ${'ABC'[origin]}: ${restoreError.message}`);}
+      }
+      // A failed return must keep the original destination available for another Off attempt.
+      if(!enabled&&returnSlot!==null&&generation===this.generation&&this.connected&&this.state?.activeSlot===2){
+        if(!this.state.bypass)try{await this.changeStateNow({slot:2,bypass:true});}
+        catch(restoreError){throw Error(`${error.message} Could not restore native bypass: ${restoreError.message}`);}
+        this.bypassReturnSlot=returnSlot;
+      }
+      throw error;
+    }
+  });}
   writeParameter(index,value) { return this.enqueue(()=>{if(!this.connected||!this.state)throw Error('Pedal is not ready.');return this.send(setParameter(index,value));}); }
   async close(reason='') {
     const hadSession=!!this.device||this.connected;
-    ++this.generation; this.connected=false; this.state=null; this.firmware=null; this.cancelPending(Error(reason||'USB session closed.'));
+    ++this.generation; this.connected=false; this.state=null; this.firmware=null; this.masterVolume=null;this.bypassReturnSlot=null; this.cancelPending(Error(reason||'USB session closed.'));
     const device=this.device; this.device=null;
     if(device?.opened)try { await device.close(); } catch(e) { this.log('error',e.message); }
     if(hadSession||reason)this.emit('connection',{connected:false,reason});
