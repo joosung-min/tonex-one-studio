@@ -1,6 +1,8 @@
 # TXOne-Studio
 
-A free browser editor for the IK Multimedia TONEX ONE pedal. Browse its stored presets, switch A/B/C slots, edit effects and parameters, and set or tap the global tempo.
+A free, unofficial browser editor for the IK Multimedia TONEX® ONE pedal. Browse its stored presets, switch A/B/C slots, edit effects and parameters, and set or tap the global tempo.
+
+TONEX® and TONEX ONE are trademarks of IK Multimedia Production Srl. TXOne-Studio is an independent project and is not affiliated with, endorsed by, sponsored by, or associated with IK Multimedia.
 
 **[Open TXOne-Studio](https://yvr-vibe.github.io/tonex-one-studio/)**
 
@@ -8,8 +10,8 @@ A free browser editor for the IK Multimedia TONEX ONE pedal. Browse its stored p
 
 ## How to use
 
-1. Connect your powered TONEX ONE to a desktop or Android device with a USB **data** cable. Android requires an OTG-capable connection.
-2. Close the official TONEX Editor and any other app using the pedal.
+1. Connect your powered pedal to a desktop or Android device with a USB **data** cable. Android requires an OTG-capable connection.
+2. Close IK Multimedia’s official TONEX Editor app and any other app using the pedal.
 3. Open the app, press **Connect pedal**, and select the pedal when your browser asks for USB access.
 4. Use **A/B/C** to select a slot. Selecting a preset from the list or pressing **Previous / Next** automatically loads it into that slot. Navigation follows the stored preset order.
 5. Select an effect to edit it. Double-click or double-tap an effect card to turn it on or off. EQ stays in the Amp section; tap **Tempo** repeatedly to set the tempo. Choosing a Mod/Delay **Division** automatically enables Sync for that effect.
@@ -26,7 +28,7 @@ If the pedal does not appear or connect, check its power, the data cable, browse
 
 ## Important information
 
-- Edits are live. Use the official TONEX Editor to save changes permanently; do not assume they survive a preset switch or power cycle.
+- Edits are live. Use IK Multimedia’s official TONEX Editor app to save changes permanently; do not assume they survive a preset switch or power cycle.
 - **Export settings** downloads preset names and parameter values. It is not a complete preset backup and cannot be restored by this app.
 - Pedal data stays between your browser and pedal.
 
@@ -34,4 +36,4 @@ If the pedal does not appear or connect, check its power, the data cable, browse
 
 Questions: [vanvibesmedia@gmail.com](mailto:vanvibesmedia@gmail.com). [Support this project](https://www.paypal.com/ncp/payment/A6DN7PPRV5PR6).
 
-Independent community project; not affiliated with or endorsed by IK Multimedia. TONEX and TONEX ONE are trademarks of IK Multimedia Production Srl. Released under the [MIT license](LICENSE), with [third-party notices](THIRD_PARTY_LICENSES.txt).
+Released under the [MIT license](LICENSE), with [third-party notices](THIRD_PARTY_LICENSES.txt).
