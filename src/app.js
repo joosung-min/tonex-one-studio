@@ -85,11 +85,13 @@ function renderChain() {
       button.querySelector('.effect-state').textContent=Number.isFinite(tapPreview??pedalState?.tempo)?`${Number((tapPreview??pedalState.tempo).toFixed(1))} BPM`:'— BPM';button.title='Tap repeatedly to set global tempo';return;
     }
     const known=params.length===109;
+    const cardName=known&&['mod','delay','reverb'].includes(g.id)?modelNames[g.model]?.[params[g.model]]||g.name:g.name;
+    const cardLabel=button.querySelector('.effect-label');cardLabel.textContent=cardName;cardLabel.classList.toggle('long-name',cardName.length>7);
     const on=known&&(g.enable===undefined||params[g.enable]===1)&&!(g.id==='cab'&&params[24]===2);
     button.classList.toggle('selected',effect===g.id);button.classList.toggle('on',on);
     button.setAttribute('aria-pressed',String(effect===g.id));
     button.querySelector('.effect-state').textContent=!known?'—':on?'On':'Off';
-    button.title=quickToggle.has(g.id)?`${g.name}: select to edit; double-click or double-tap to toggle${!editable()?' after loading the preset':''}`:`${g.name}: select to edit`;
+    button.title=quickToggle.has(g.id)?`${cardName}: select to edit; double-click or double-tap to toggle${!editable()?' after loading the preset':''}`:`${cardName}: select to edit`;
   });
 }
 function toggleEffect(g) {

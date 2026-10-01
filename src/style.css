@@ -112,3 +112,5 @@
 @media(max-width:380px){.tempo-control .tempo-input{gap:6px}.tempo-input #tempo-value{width:100px}}
 
 .preset-row{gap:8px;min-width:0}.preset-row>span.preset-list-name{font-size:14px;line-height:1.35;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.preset-row .preset-index{font-size:11px;flex-shrink:0}.preset-row .preset-dot{flex-shrink:0}.preset-slot-badges{display:inline-flex;align-items:center;gap:3px;flex-shrink:0}.preset-slot-badge{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:22px;padding:0 3px;border:1px solid var(--border);border-radius:4px;background:var(--surface-alt);color:var(--secondary-ink);font-size:11px;font-weight:700}.preset-slot-badge.active{background:var(--badge-color);color:var(--badge-ink);border-color:var(--badge-color)}
+
+.effect-block .effect-label{white-space:nowrap}.effect-block .effect-label.long-name{font-size:12px}
