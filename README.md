@@ -14,11 +14,11 @@ TONEX® and TONEX ONE are trademarks of IK Multimedia Production Srl. TXOne-Stud
 2. Close IK Multimedia’s official TONEX Editor app and any other app using the pedal.
 3. Open the app, press **Connect pedal**, and select the pedal when your browser asks for USB access.
 4. Use **A/B/C** to select a slot. Selecting a preset from the list or pressing **Previous / Next** automatically loads it into that slot. Navigation follows the stored preset order.
-5. Select an effect to edit it. Double-click or double-tap an effect card to turn it on or off. EQ stays in the Amp section; tap **Tempo** repeatedly to set the tempo. Choosing a Mod/Delay **Division** automatically enables Sync for that effect.
+5. Select an effect to edit it. By default, double-click or double-tap an effect card to turn it on or off. Choose **Single tap** in **Settings → Activation method** if preferred. EQ stays in the Amp section; tap **Tempo** repeatedly to set the tempo. Choosing a Mod/Delay **Division** automatically enables Sync for that effect.
 
 Sliders use whole steps. For parameters that support decimals, enter them directly in the value box.
 
-Use **Settings** in the bottom navigation for Master volume, Input trim, Tuning reference, Global bypass, and Direct monitoring. Master volume requires compatible pedal firmware. From A/B, Global bypass temporarily switches to C/Stomp mode, then returns to the original slot when turned off; C’s preset assignment stays unchanged. Settings changes are read back for confirmation; persistence after power-off has not been verified.
+Use **Settings** in the bottom navigation for Master volume, Input trim, Tuning reference, Global bypass, and Direct monitoring. Master volume requires compatible pedal firmware. **Global Bypass** is also available beside **Next** and follows your activation preference. From A/B, Global bypass temporarily switches to C/Stomp mode, then returns to the original slot when turned off; C’s preset assignment stays unchanged. Settings changes are read back for confirmation; persistence after power-off has not been verified.
 
 Choose **Explore demo** to try the interface without a pedal.
 

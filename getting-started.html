@@ -1,41 +1,230 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How to Control TONEX ONE on Desktop &amp; Android | Getting Started</title>
-<meta name="description" content="Set up TXOne-Studio with desktop Chrome or Android Chrome and USB OTG. Learn preset switching, effect editing, tempo, and connection troubleshooting.">
-<link rel="canonical" href="https://yvr-vibe.github.io/txone-studio/getting-started.html">
-<meta property="og:type" content="website"><meta property="og:title" content="Get started with TXOne-Studio"><meta property="og:description" content="A practical guide to controlling TONEX ONE from desktop and Android browsers over USB."><meta property="og:url" content="https://yvr-vibe.github.io/txone-studio/getting-started.html"><meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#171b18"><link rel="icon" href="./public/icon.svg" type="image/svg+xml">
-<script src="./src/theme.js"></script><link rel="stylesheet" href="./src/style.css">
-</head>
-<body class="guide-page">
-<header class="guide-header"><a class="brand" href="./">T<span>X</span>One-Studio</a><a class="secondary" href="./">Open editor ↗</a></header>
-<main class="guide-main">
-<h1>Get started with TXOne-Studio</h1>
-<p class="guide-lead">Control your IK Multimedia TONEX ONE pedal from a supported desktop or Android browser. Browse its stored presets, edit effects, and set tempo using a USB data connection.</p>
-<p>TONEX® and TONEX ONE are trademarks of IK Multimedia Production Srl. TXOne-Studio is an independent project and is not affiliated with, endorsed by, sponsored by, or associated with IK Multimedia.</p>
-<nav class="guide-contents" aria-label="Guide sections"><a href="#desktop">Desktop setup</a><a href="#android">Android setup</a><a href="#editing">Presets &amp; effects</a><a href="#troubleshooting">Troubleshooting</a><a href="#limitations">Limitations</a></nav>
-<section id="desktop"><h2>Edit TONEX ONE in a desktop browser</h2>
-<p>Desktop Chrome has been tested with this app. Other desktop browsers need compatible Web Serial support.</p>
-<ol><li>Connect your powered TONEX ONE to your computer with a USB <strong>data</strong> cable.</li><li>Close the official TONEX Editor, Librarian, and any other app using the pedal.</li><li><a href="./">Open TXOne-Studio</a> and press <strong>Connect pedal</strong>.</li><li>Select the pedal’s serial port in the browser prompt. Wait for its stored presets to appear.</li></ol></section>
-<section id="android"><h2>Control TONEX ONE from Android</h2>
-<p>Android Chrome has been tested. Your device must support USB host/OTG connections, and the browser must support WebUSB. Not every Android browser offers the required USB access.</p>
-<ol><li>Use a USB data cable and an OTG-capable adapter or connection to attach your powered pedal to your Android phone or tablet.</li><li>Close any other app using the pedal, then open this site in Chrome.</li><li>Press <strong>Connect pedal</strong>, choose the TONEX ONE USB device, and allow access.</li><li>Wait for the preset list to finish loading.</li></ol></section>
-<section id="editing"><h2>Switch presets and edit effects</h2>
-<ul><li><strong>A/B/C:</strong> select the active slot. A and B are the Dual slots; C is the Stomp slot. Slot buttons show a shortened preset name, and the preset list shows its assigned slot letters.</li><li><strong>Preset list:</strong> choosing a preset automatically loads it into the selected slot. Previous and Next follow the stored preset order.</li><li><strong>Effect cards:</strong> select a card to edit its parameters. Double-click or double-tap a card to turn its effect on or off. Modulation, Delay, and Reverb cards show the selected effect type.</li><li><strong>Amp and EQ:</strong> EQ is inside the Amp parameter view and remains active when the Amp is off.</li><li><strong>Values:</strong> sliders move in whole steps. Enter decimals directly in value boxes where supported.</li><li><strong>Routing:</strong> the Pre amp/Post amp button changes where the effect sits in the signal path.</li></ul>
-<figure><img src="./public/editor-demo.png" alt="TXOne-Studio demo showing preset slots, effect cards, and amplifier parameter controls" width="1100" height="950" loading="lazy"><figcaption>Sample presets and simulated controls in Explore demo; your pedal’s names, colors, and settings will differ.</figcaption></figure>
-<h3>Global settings</h3>
-<p>Use <strong>Settings</strong> in the bottom navigation for Master volume (0–10), Input trim (−15 to +15 dB), Tuning reference (415–465 Hz), Global bypass, and Direct monitoring. Changes are read back for confirmation. Master volume requires compatible firmware; other settings remain available if it is unsupported. Direct monitoring is preserved when switching presets. Global bypass temporarily uses Slot C/Stomp mode when started from A or B, then returns to the original slot when turned off. C’s preset assignment stays unchanged. Persistence after power-off has not been verified.</p>
-<h3>Sync, Division, and tempo</h3>
-<p>For Modulation and Delay, choosing a Division automatically enables Sync. Division sets the effect timing relative to the global tempo. The buttons run from longer to shorter durations: 1/4D, 1/4, 1/8D, 1/8, and 1/16. D means dotted, which lasts one and a half times the corresponding undotted note.</p>
-<p>Tap the <strong>Tempo</strong> card repeatedly to set tempo from your taps. In Global tempo, edit BPM using the value box, slider, or up/down buttons, then press <strong>Apply</strong>. The arrow buttons change BPM by 1; the value box also accepts decimals.</p></section>
-<section id="troubleshooting"><h2>USB connection troubleshooting</h2>
-<ul><li><strong>No USB or serial prompt:</strong> use desktop Chrome or Android Chrome, open the full browser rather than an embedded app browser, and check that your device supports the required connection.</li><li><strong>The pedal is missing:</strong> check pedal power and use a data cable; a charge-only cable will not work. On Android, check OTG support and the adapter.</li><li><strong>Connection opens but the pedal does not respond:</strong> close competing editor apps, disconnect and reconnect the cable, and try again.</li><li><strong>After sleep or disconnection:</strong> reconnect the pedal or refresh the page and connect again.</li></ul></section>
-<section id="limitations"><h2>Compatibility and important limitations</h2>
-<ul><li><strong>iPhone/iPad Safari is currently unsupported.</strong></li><li><strong>Edits are live, but permanent saving is not implemented.</strong> Use the official TONEX Editor to save permanently. Do not assume edits survive a preset switch or power cycle.</li><li><strong>Export settings</strong> downloads preset names and parameter values. It is not a full tone-model or cabinet backup and cannot be restored by this app.</li><li>Your pedal data stays between your browser and the pedal.</li></ul>
-<p>You can try <a href="./?demo=1">Explore demo</a> without connecting hardware. Demo controls are simulated.</p></section>
-<p class="guide-open"><a class="primary" href="./">Open TXOne-Studio ↗</a></p>
-</main>
-<footer class="guide-footer">Questions: <a href="mailto:vanvibesmedia@gmail.com">vanvibesmedia@gmail.com</a> · <a href="./LICENSE">MIT license</a> · <a href="./THIRD_PARTY_LICENSES.txt">Third-party notices</a></footer>
-</body></html>
+  <head>
+    <meta charset="UTF-8" /><meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title
+      >How to Control TONEX ONE on Desktop &amp; Android | Getting
+      Started</title
+    >
+    <meta
+      name="description"
+      content="Set up TXOne-Studio with desktop Chrome or Android Chrome and USB OTG. Learn preset switching, effect editing, tempo, and connection troubleshooting."
+    />
+    <link
+      rel="canonical"
+      href="https://yvr-vibe.github.io/txone-studio/getting-started.html"
+    />
+    <meta property="og:type" content="website" /><meta
+      property="og:title"
+      content="Get started with TXOne-Studio"
+    /><meta
+      property="og:description"
+      content="A practical guide to controlling TONEX ONE from desktop and Android browsers over USB."
+    /><meta
+      property="og:url"
+      content="https://yvr-vibe.github.io/txone-studio/getting-started.html"
+    /><meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#171b18" /><link
+      rel="icon"
+      href="./public/icon.svg"
+      type="image/svg+xml"
+    />
+    <script src="./src/theme.js"></script
+    ><link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body class="guide-page">
+    <header class="guide-header"
+      ><a class="brand" href="./">T<span>X</span>One-Studio</a
+      ><a class="secondary" href="./">Open editor ↗</a></header
+    >
+    <main class="guide-main">
+      <h1>Get started with TXOne-Studio</h1>
+      <p class="guide-lead"
+        >Control your IK Multimedia TONEX ONE pedal from a supported desktop or
+        Android browser. Browse its stored presets, edit effects, and set tempo
+        using a USB data connection.</p
+      >
+      <p
+        >TONEX® and TONEX ONE are trademarks of IK Multimedia Production Srl.
+        TXOne-Studio is an independent project and is not affiliated with,
+        endorsed by, sponsored by, or associated with IK Multimedia.</p
+      >
+      <nav class="guide-contents" aria-label="Guide sections"
+        ><a href="#desktop">Desktop setup</a><a href="#android">Android setup</a
+        ><a href="#editing">Presets &amp; effects</a
+        ><a href="#troubleshooting">Troubleshooting</a
+        ><a href="#limitations">Limitations</a></nav
+      >
+      <section id="desktop"
+        ><h2>Edit TONEX ONE in a desktop browser</h2>
+        <p
+          >Desktop Chrome has been tested with this app. Other desktop browsers
+          need compatible Web Serial support.</p
+        >
+        <ol
+          ><li
+            >Connect your powered TONEX ONE to your computer with a USB
+            <strong>data</strong> cable.</li
+          ><li
+            >Close the official TONEX Editor, Librarian, and any other app using
+            the pedal.</li
+          ><li
+            ><a href="./">Open TXOne-Studio</a> and press
+            <strong>Connect pedal</strong>.</li
+          ><li
+            >Select the pedal’s serial port in the browser prompt. Wait for its
+            stored presets to appear.</li
+          ></ol
+        ></section
+      >
+      <section id="android"
+        ><h2>Control TONEX ONE from Android</h2>
+        <p
+          >Android Chrome has been tested. Your device must support USB host/OTG
+          connections, and the browser must support WebUSB. Not every Android
+          browser offers the required USB access.</p
+        >
+        <ol
+          ><li
+            >Use a USB data cable and an OTG-capable adapter or connection to
+            attach your powered pedal to your Android phone or tablet.</li
+          ><li
+            >Close any other app using the pedal, then open this site in
+            Chrome.</li
+          ><li
+            >Press <strong>Connect pedal</strong>, choose the TONEX ONE USB
+            device, and allow access.</li
+          ><li>Wait for the preset list to finish loading.</li></ol
+        ></section
+      >
+      <section id="editing"
+        ><h2>Switch presets and edit effects</h2>
+        <ul
+          ><li
+            ><strong>A/B/C:</strong> select the active slot. A and B are the
+            Dual slots; C is the Stomp slot. Slot buttons show a shortened
+            preset name, and the preset list shows its assigned slot
+            letters.</li
+          ><li
+            ><strong>Preset list:</strong> choosing a preset automatically loads
+            it into the selected slot. Previous and Next follow the stored
+            preset order.</li
+          ><li
+            ><strong>Effect cards:</strong> select a card to edit its
+            parameters. By default, double-click or double-tap a card to turn
+            its effect on or off. Choose Single tap under Settings → Activation
+            method if preferred. Modulation, Delay, and Reverb cards show the
+            selected effect type.</li
+          ><li
+            ><strong>Amp and EQ:</strong> EQ is inside the Amp parameter view
+            and remains active when the Amp is off.</li
+          ><li
+            ><strong>Values:</strong> sliders move in whole steps. Enter
+            decimals directly in value boxes where supported.</li
+          ><li
+            ><strong>Routing:</strong> the Pre amp/Post amp button changes where
+            the effect sits in the signal path.</li
+          ></ul
+        >
+        <figure
+          ><img
+            src="./public/editor-demo.png"
+            alt="TXOne-Studio demo showing preset slots, effect cards, and amplifier parameter controls"
+            width="1100"
+            height="950"
+            loading="lazy"
+          /><figcaption
+            >Sample presets and simulated controls in Explore demo; your pedal’s
+            names, colors, and settings will differ.</figcaption
+          ></figure
+        >
+        <h3>Global settings</h3>
+        <p
+          >Use <strong>Settings</strong> in the bottom navigation for Master
+          volume (0–10), Input trim (−15 to +15 dB), Tuning reference (415–465
+          Hz), Global bypass, and Direct monitoring. Changes are read back for
+          confirmation. Master volume requires compatible firmware; other
+          settings remain available if it is unsupported. Direct monitoring is
+          preserved when switching presets. Global bypass temporarily uses Slot
+          C/Stomp mode when started from A or B, then returns to the original
+          slot when turned off. C’s preset assignment stays unchanged. The
+          Global Bypass shortcut beside Next follows your Activation method
+          preference; the Settings On/Off control uses a single click or tap.
+          While bypassed, the original preset stays displayed and the parameter
+          panel is hidden. Persistence after power-off has not been verified.</p
+        >
+        <h3>Sync, Division, and tempo</h3>
+        <p
+          >For Modulation and Delay, choosing a Division automatically enables
+          Sync. Division sets the effect timing relative to the global tempo.
+          The buttons run from longer to shorter durations: 1/4D, 1/4, 1/8D,
+          1/8, and 1/16. D means dotted, which lasts one and a half times the
+          corresponding undotted note.</p
+        >
+        <p
+          >Tap the <strong>Tempo</strong> card repeatedly to set tempo from your
+          taps. In Global tempo, edit BPM using the value box, slider, or
+          up/down buttons, then press <strong>Apply</strong>. The arrow buttons
+          change BPM by 1; the value box also accepts decimals.</p
+        ></section
+      >
+      <section id="troubleshooting"
+        ><h2>USB connection troubleshooting</h2>
+        <ul
+          ><li
+            ><strong>No USB or serial prompt:</strong> use desktop Chrome or
+            Android Chrome, open the full browser rather than an embedded app
+            browser, and check that your device supports the required
+            connection.</li
+          ><li
+            ><strong>The pedal is missing:</strong> check pedal power and use a
+            data cable; a charge-only cable will not work. On Android, check OTG
+            support and the adapter.</li
+          ><li
+            ><strong>Connection opens but the pedal does not respond:</strong>
+            close competing editor apps, disconnect and reconnect the cable, and
+            try again.</li
+          ><li
+            ><strong>After sleep or disconnection:</strong> reconnect the pedal
+            or refresh the page and connect again.</li
+          ></ul
+        ></section
+      >
+      <section id="limitations"
+        ><h2>Compatibility and important limitations</h2>
+        <ul
+          ><li><strong>iPhone/iPad Safari is currently unsupported.</strong></li
+          ><li
+            ><strong
+              >Edits are live, but permanent saving is not implemented.</strong
+            >
+            Use the official TONEX Editor to save permanently. Do not assume
+            edits survive a preset switch or power cycle.</li
+          ><li
+            ><strong>Export settings</strong> downloads preset names and
+            parameter values. It is not a full tone-model or cabinet backup and
+            cannot be restored by this app.</li
+          ><li
+            >Your pedal data stays between your browser and the pedal.</li
+          ></ul
+        >
+        <p
+          >You can try <a href="./?demo=1">Explore demo</a> without connecting
+          hardware. Demo controls are simulated.</p
+        ></section
+      >
+      <p class="guide-open"
+        ><a class="primary" href="./">Open TXOne-Studio ↗</a></p
+      >
+    </main>
+    <footer class="guide-footer"
+      >Questions:
+      <a href="mailto:vanvibesmedia@gmail.com">vanvibesmedia@gmail.com</a> ·
+      <a href="./LICENSE">MIT license</a> ·
+      <a href="./THIRD_PARTY_LICENSES.txt">Third-party notices</a></footer
+    >
+  </body></html
+>

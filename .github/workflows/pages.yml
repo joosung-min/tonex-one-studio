@@ -1,4 +1,4 @@
-name: Publish ToneX One Studio
+name: Publish TXOne-Studio
 on:
   push:
     branches: [main]
@@ -18,7 +18,10 @@ jobs:
           node-version: '24'
       - run: npm ci
       - run: npm run check
+      - run: npm run format:check
       - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser -- --production
       - run: npm run build
       - uses: actions/upload-pages-artifact@v4
         with:

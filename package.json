@@ -1,17 +1,22 @@
 {
   "name": "txone-studio",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/app.js && node --check src/serial.js && node --check src/usb.js && node --check src/protocol.js",
+    "check": "node scripts/check.js",
     "build": "node scripts/build-pages.js",
-    "preview": "node server.js dist"
+    "preview": "node server.js dist",
+    "format": "prettier --write src tests scripts index.html getting-started.html server.js sw.js package.json .prettierrc.json",
+    "format:check": "prettier --check src tests scripts index.html getting-started.html server.js sw.js package.json .prettierrc.json",
+    "test:browser": "node tests/browser/run.mjs"
   },
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "playwright": "1.62.1",
+    "prettier": "3.6.2"
   }
 }
