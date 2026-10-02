@@ -342,7 +342,11 @@ export function mutateState(
     raw[state.slotOffsets[slot] + 1] = 0;
   }
   if (bypass !== undefined) raw[state.bypassOffset] = bypass ? 1 : 0;
-  if (cabBypass !== undefined) raw[state.cabOffset] = cabBypass ? 1 : 0;
+  if (cabBypass !== undefined) {
+    if (typeof cabBypass !== 'boolean')
+      throw Error('Cabinet bypass must be On or Off.');
+    raw[state.cabOffset] = cabBypass ? 1 : 0;
+  }
   if (tempo !== undefined) {
     if (!Number.isFinite(tempo) || tempo < 40 || tempo > 240)
       throw Error('Tempo must be between 40 and 240 BPM.');

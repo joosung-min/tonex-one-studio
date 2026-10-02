@@ -18,7 +18,7 @@ TONEX® and TONEX ONE are trademarks of IK Multimedia Production Srl. TXOne-Stud
 
 Sliders use whole steps. For parameters that support decimals, enter them directly in the value box.
 
-Use **Settings** in the bottom navigation for Master volume, Input trim, Tuning reference, Global bypass, and Direct monitoring. Master volume requires compatible pedal firmware. **Global Bypass** is also available beside **Next** and follows your activation preference. From A/B, Global bypass temporarily switches to C/Stomp mode, then returns to the original slot when turned off; C’s preset assignment stays unchanged. Settings changes are read back for confirmation; persistence after power-off has not been verified.
+Use **Settings** in the bottom navigation for Master volume, Input trim, Tuning reference, Global bypass, Global cabinet bypass, and Direct monitoring. Global cabinet bypass disables cabinet simulation across presets. Master volume requires compatible pedal firmware. **Global Bypass** is also available beside **Next** and follows your activation preference. From A/B, Global bypass temporarily switches to C/Stomp mode, then returns to the original slot when turned off; C’s preset assignment stays unchanged. Settings changes are read back for confirmation; persistence after power-off has not been verified.
 
 Choose **Explore demo** to try the interface without a pedal.
 

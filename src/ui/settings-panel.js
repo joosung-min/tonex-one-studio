@@ -61,10 +61,22 @@ export function renderSettingsPanel(
         return `<div class="global-setting"><h2>${field.name}</h2><div class="control"><label class="value-field"><input id="global-${field.key}" aria-label="${field.name}" type="number" min="${field.min}" max="${field.max}" step="${field.step}" value="${available ? Number(value.toFixed(2)) : ''}" placeholder="—" ${blocked ? 'disabled' : ''}><small>${field.unit}</small></label><input id="global-range-${field.key}" aria-label="${field.name} slider" type="range" min="${field.min}" max="${field.max}" step="1" value="${available ? value : field.min}" ${blocked ? 'disabled' : ''}></div>${field.key === 'masterVolume' && masterUnavailable ? '<p class="settings-note">Master volume is unavailable: the pedal did not return a supported reply. Refresh to retry.</p>' : ''}</div>`;
       })
       .join('') +
-    ['bypass', 'directMonitoring']
+    [
+      { key: 'bypass', name: 'Global bypass', note: bypassDescription },
+      {
+        key: 'cabBypass',
+        name: 'Global cabinet bypass',
+        note: 'On disables cabinet simulation for every preset.',
+      },
+      {
+        key: 'directMonitoring',
+        name: 'Direct monitoring',
+        note: 'Off disables direct guitar monitoring through the pedal’s outputs.',
+      },
+    ]
       .map(
-        (key) =>
-          `<div class="global-setting"><h2>${key === 'bypass' ? 'Global bypass' : 'Direct monitoring'}</h2><button class="toggle global-toggle ${pedalState?.[key] ? '' : 'off'}" data-global-toggle="${key}" aria-pressed="${!!pedalState?.[key]}" ${disabled}>${pedalState ? (pedalState[key] ? '● On' : '○ Off') : '—'}</button>${key === 'directMonitoring' ? '<p class="settings-note">Off disables direct guitar monitoring through the pedal’s outputs.</p>' : '<p class="settings-note">' + bypassDescription + '</p>'}</div>`,
+        ({ key, name, note }) =>
+          `<div class="global-setting"><h2>${name}</h2><button class="toggle global-toggle ${pedalState?.[key] ? '' : 'off'}" data-global-toggle="${key}" aria-pressed="${!!pedalState?.[key]}" ${disabled}>${pedalState ? (pedalState[key] ? '● On' : '○ Off') : '—'}</button><p class="settings-note">${note}</p></div>`,
       )
       .join('');
   for (const field of globalFields) {

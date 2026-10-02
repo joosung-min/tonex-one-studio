@@ -186,8 +186,55 @@ async function checkBypass(page) {
     cPreset,
   );
 }
+async function checkNumberedNames(page) {
+  assert.equal(
+    await page.locator('#preset-name').innerText(),
+    '01 British Breakup',
+  );
+  for (const [slot, number] of [
+    [0, '01'],
+    [1, '02'],
+    [2, '03'],
+  ])
+    assert.ok(
+      (
+        await page.locator(`[data-slot="${slot}"] .slot-preset`).innerText()
+      ).startsWith(number + ' '),
+    );
+  assert.ok(
+    (await page.locator('#next-preset small').innerText()).startsWith('02 '),
+  );
+  await page.locator('[data-slot="1"]').click();
+  assert.equal(
+    await page.locator('#preset-name').innerText(),
+    '02 California Clean',
+  );
+  assert.ok(
+    (await page.locator('#previous-preset small').innerText()).startsWith(
+      '01 ',
+    ),
+  );
+  assert.ok(
+    (await page.locator('#next-preset small').innerText()).startsWith('03 '),
+  );
+  await page.locator('[data-slot="0"]').click();
+}
+async function setCabinetBypass(page, on) {
+  const button = page.locator('[data-global-toggle="cabBypass"]');
+  await page.locator('#nav-settings').click();
+  await page.waitForFunction(
+    () => !document.querySelector('[data-global-toggle="cabBypass"]').disabled,
+  );
+  if ((await button.getAttribute('aria-pressed')) !== String(on))
+    await button.click();
+  await page.waitForFunction(
+    () => !document.querySelector('[data-global-toggle="cabBypass"]').disabled,
+  );
+  assert.equal(await button.getAttribute('aria-pressed'), String(on));
+}
 async function demoChecks() {
   const { context, page } = await pageFor();
+  await checkNumberedNames(page);
   for (const theme of ['light', 'dark']) {
     await page.evaluate(
       (theme) => (document.documentElement.dataset.theme = theme),
@@ -208,9 +255,23 @@ async function demoChecks() {
         );
       }
     }
-    assert.equal(await page.locator('.global-setting').count(), 6);
+    assert.equal(await page.locator('.global-setting').count(), 7);
+    await setCabinetBypass(page, true);
     await page.locator('#nav-editor').click();
     await checkBypass(page);
+    await page.locator('#nav-settings').click();
+    await page.waitForFunction(
+      () =>
+        !document.querySelector('[data-global-toggle="cabBypass"]').disabled,
+    );
+    assert.equal(
+      await page
+        .locator('[data-global-toggle="cabBypass"]')
+        .getAttribute('aria-pressed'),
+      'true',
+    );
+    await setCabinetBypass(page, false);
+    await page.locator('#nav-editor').click();
   }
   await page.locator('#nav-settings').click();
   await page.locator('#activation-method').click();
@@ -339,8 +400,22 @@ async function mockedPedalChecks() {
       .getAttribute('aria-pressed'),
     'false',
   );
+  await setCabinetBypass(page, false);
+  await setCabinetBypass(page, true);
   await page.locator('#nav-editor').click();
   await checkBypass(page);
+  await page.locator('#nav-settings').click();
+  await page.waitForFunction(
+    () => !document.querySelector('[data-global-toggle="cabBypass"]').disabled,
+  );
+  assert.equal(
+    await page
+      .locator('[data-global-toggle="cabBypass"]')
+      .getAttribute('aria-pressed'),
+    'true',
+  );
+  await setCabinetBypass(page, false);
+  await page.locator('#nav-editor').click();
   await page.locator('#nav-settings').click();
   await page.waitForFunction(
     () => !document.querySelector('#global-masterVolume').disabled,

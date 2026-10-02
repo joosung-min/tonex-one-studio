@@ -340,3 +340,58 @@ test('partial return failure restores bypass so Off can retry the original slot'
     await usb.close();
   }
 });
+
+test('global cabinet bypass preserves per-preset cabinet values and survives slot changes', async () => {
+  const d = new Device(),
+    usb = new ToneXUSB();
+  await usb.open(d);
+  try {
+    await usb.changeState({ cabBypass: false });
+    const values = d.values.slice(),
+      original = usb.state.raw.slice(),
+      offset = usb.state.cabOffset;
+    const on = await usb.changeState({ cabBypass: true });
+    assert.equal(on.cabBypass, true);
+    assert.equal(on.activeSlot, 0);
+    for (let i = 0; i < original.length; i++)
+      if (i !== offset)
+        assert.equal(
+          on.raw[i],
+          original[i],
+          `Cabinet bypass changed byte ${i}`,
+        );
+    assert.equal(
+      (await usb.changeState({ slot: 1, preset: 7 })).cabBypass,
+      true,
+    );
+    assert.deepEqual(d.values, values);
+    const off = await usb.changeState({ cabBypass: false });
+    assert.equal(off.cabBypass, false);
+    assert.equal(off.activeSlot, 1);
+    assert.deepEqual(d.values, values);
+    for (const value of ['On', 1, null])
+      assert.throws(
+        () => mutateState(off, { cabBypass: value }),
+        /Cabinet bypass/,
+      );
+  } finally {
+    await usb.close();
+  }
+});
+test('global cabinet bypass rejects an unconfirmed write and retains the actual value', async () => {
+  const d = new Device(),
+    usb = new ToneXUSB();
+  await usb.open(d);
+  const send = usb.send.bind(usb);
+  usb.send = (p) => (p[3] === 6 && p[4] === 3 ? Promise.resolve() : send(p));
+  try {
+    const before = usb.state.cabBypass;
+    await assert.rejects(
+      usb.changeState({ cabBypass: !before }),
+      /did not confirm/,
+    );
+    assert.equal(usb.state.cabBypass, before);
+  } finally {
+    await usb.close();
+  }
+});

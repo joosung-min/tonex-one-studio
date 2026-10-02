@@ -22,3 +22,7 @@ export function presetInk(color) {
     ? '#111811'
     : '#fff';
 }
+
+export function presetName(preset) {
+  return `${String(preset.id + 1).padStart(2, '0')} ${preset.name}`;
+}

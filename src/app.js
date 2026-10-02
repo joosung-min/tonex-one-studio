@@ -749,6 +749,7 @@ function startDemo() {
     activeSlot: 0,
     stomp: false,
     bypass: false,
+    cabBypass: false,
     tempo: 120,
     inputTrim: 0,
     tuningReference: 440,

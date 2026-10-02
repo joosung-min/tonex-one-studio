@@ -32,7 +32,7 @@ for (const prefix of ['/', '/txone-studio/']) {
       deleted = [],
       matches = [];
     const appPrefix = `tonex-studio:${prefix}:`,
-      cacheName = appPrefix + 'v38';
+      cacheName = appPrefix + 'v39';
     const caches = {
       open: async () => ({ addAll: async (urls) => added.push(...urls) }),
       keys: async () => [

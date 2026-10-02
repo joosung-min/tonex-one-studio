@@ -1,7 +1,7 @@
 // Scope cache names and URLs to this app so multiple Pages projects can coexist.
 const BASE = new URL('./', self.location.href);
 const PREFIX = `tonex-studio:${BASE.pathname}:`;
-const CACHE = PREFIX + 'v38';
+const CACHE = PREFIX + 'v39';
 const SHELL = [
   './',
   'index.html',

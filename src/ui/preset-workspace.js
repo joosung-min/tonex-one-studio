@@ -1,4 +1,4 @@
-import { $, presetInk } from './dom.js';
+import { $, presetInk, presetName } from './dom.js';
 export function renderPresetWorkspace({
   displayedPreset,
   pedalState,
@@ -11,8 +11,8 @@ export function renderPresetWorkspace({
   $('preset-number').textContent = p
     ? `PRESET ${String(p.id + 1).padStart(2, '0')} / 20`
     : 'NO PRESET SELECTED';
-  $('preset-name').textContent = p?.name || 'Connect your pedal';
-  $('preset-name').title = p?.name || 'Connect your pedal';
+  $('preset-name').textContent = p ? presetName(p) : 'Connect your pedal';
+  $('preset-name').title = p ? presetName(p) : 'Connect your pedal';
   document
     .querySelector('.tone-card')
     .style.setProperty('--preset-color', p?.color || 'var(--border)');
@@ -27,7 +27,7 @@ export function renderPresetWorkspace({
     const current = Number(b.dataset.slot) === pedalState?.activeSlot;
     const slotPreset = presets[pedalState?.slots[Number(b.dataset.slot)]];
     const slot = Number(b.dataset.slot),
-      name = slotPreset?.read ? slotPreset.name : '—',
+      name = slotPreset?.read ? presetName(slotPreset) : '—',
       letters = Array.from(name);
     b.querySelector('.slot-preset').textContent =
       letters.length > 10 ? letters.slice(0, 10).join('') + '…' : name;
@@ -66,7 +66,7 @@ export function renderNavigation({
     button.disabled = !ready || !destination?.read;
     button.style.setProperty('--destination-color', color);
     button.style.setProperty('--destination-ink', presetInk(color));
-    const name = destination?.name || '—',
+    const name = destination ? presetName(destination) : '—',
       letters = Array.from(name);
     button.querySelector('small').textContent =
       letters.length > 12 ? letters.slice(0, 12).join('') + '…' : name;
